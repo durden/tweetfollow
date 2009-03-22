@@ -1,0 +1,16 @@
+<h1>About</h1>
+
+<p>
+	Simple python script to let you know that you have lost twitter followers and your most
+    recent tweets that could have sent them packing.
+</p>
+<p><strong>Lots of features hopefully to be added and it is not stable yet.</strong></p>
+
+<h2>Requirements</h2>
+<ul>
+	<li>
+		<a href="http://code.google.com/p/python-twitter/">python-twitter</a><br/>
+		I am currently using github fork at
+		 <a href="http://github.com/idangazit/python-twitter/tree/master">idangazit fork</a>
+	</li>
+</ul>
