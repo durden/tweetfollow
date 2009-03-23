@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from tweetfollow.tweetapp.views import *
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -16,4 +17,5 @@ urlpatterns = patterns('',
     # (r'^admin/(.*)', admin.site.root),
 	(r'^$', home),
 	(r'^register/$', register),
+	(r'^users/$', users),
 )

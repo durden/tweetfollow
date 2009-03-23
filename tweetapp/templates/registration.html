@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %} Register {% endblock %}
+
+{% block content %}
+  <p>{{ msg }}
+  <form action="/register/" id="reg" method="post">
+    <fieldset>
+      <legend> Twitter user (password saved encrpyted)</legend>
+      <p>
+         <label for="user">User:</label>
+         <input type="text" id="user" name="user"/>
+      </p>
+      <p>
+         <label for="pwd">Password:</label>
+         <input type="password" id="pwd" name="pwd"/>
+      </p>
+      <p><input type="submit" value="submit"/></p>
+    </fieldset>
+  </form>
+{% endblock %}
