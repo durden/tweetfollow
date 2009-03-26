@@ -10,7 +10,7 @@ class TwitterUser(models.Model):
 	follow_count = models.IntegerField()
 
 class FollowerChange(models.Model):
-	user = models.ForeignKey(TwitterUser)
+	user = models.ForeignKey(TwitterUser, to_field='username')
 	type = models.BooleanField()
 	time = models.DateTimeField(auto_now=True)
 	count = models.IntegerField()
