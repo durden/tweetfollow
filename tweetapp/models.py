@@ -7,6 +7,7 @@ from django.db import models
 class TwitterUser(models.Model):
 	username = models.CharField(max_length=50)
 	last_visited = models.DateTimeField(auto_now=True)
+	follow_count = models.IntegerField()
 
 class FollowerChange(models.Model):
 	user = models.ForeignKey(TwitterUser)
