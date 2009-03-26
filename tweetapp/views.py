@@ -1,4 +1,5 @@
 from django.shortcuts import render_to_response
+from tweetapp.models import TwitterUser, FollowerChange
 from urllib2 import HTTPError
 
 import twitterapi
@@ -23,8 +24,10 @@ def login(request):
 		except (twitterapi.TwitterError, HTTPError):
 			return render_to_response('login.html', {'msg' : 'Twitter user/password incorrect'})
 
-		#FIXME: Maybe ask for an e-mail?
-		#user_obj = User.objects.create_user(user, '', pwd)
+		user_obj = TwitterUser(username=user)
+
+		# FIXME: Exception to catch?
+		user_obj.save()
 
 		return render_to_response('login.html', {'msg' : 'Added %s!' % (user)})
 
