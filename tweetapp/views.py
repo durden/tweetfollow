@@ -1,5 +1,4 @@
 from django.shortcuts import render_to_response
-from django.contrib.auth.models import User
 from urllib2 import HTTPError
 
 import twitterapi
@@ -7,13 +6,13 @@ import twitterapi
 def home(request):
 	return render_to_response('home.html')
 
-def register(request):
+def login(request):
 	if request.method == 'POST':
 		user = request.POST.get('user', '')
 		pwd = request.POST.get('pwd', '')
 
 		if user == '' or pwd == '':
-			return render_to_response('registration.html', {'msg': 'Must enter user and pwd'})
+			return render_to_response('login.html', {'msg': 'Must enter user and pwd'})
 
 		# Verify it is the correct twitter password
 		api = twitterapi.Api(username=user, password=pwd)
@@ -22,14 +21,14 @@ def register(request):
 			api.GetUserTimeline()
 		# HttpError (401) is raised if bad password
 		except (twitterapi.TwitterError, HTTPError):
-			return render_to_response('registration.html', {'msg' : 'Twitter user/password incorrect'})
+			return render_to_response('login.html', {'msg' : 'Twitter user/password incorrect'})
 
 		#FIXME: Maybe ask for an e-mail?
-		user_obj = User.objects.create_user(user, '', pwd)
+		#user_obj = User.objects.create_user(user, '', pwd)
 
-		return render_to_response('registration.html', {'msg' : 'Added %s!' % (user)})
+		return render_to_response('login.html', {'msg' : 'Added %s!' % (user)})
 
-	return render_to_response('registration.html')
+	return render_to_response('login.html')
 
 def users(request):
 	usrs = User.objects.all()
