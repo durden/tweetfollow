@@ -24,12 +24,14 @@ def login(request):
 		except (twitterapi.TwitterError, HTTPError):
 			return render_to_response('login.html', {'msg' : 'Twitter user/password incorrect'})
 
-		user_obj = TwitterUser.objects.get(username=user)
+		user_obj = None
 		change_obj = None
 		cnt = len(api.GetFollowers())
 
 		# Update last_visited and follower_count
-		if user_obj:
+		if TwitterUser.objects.filter(username=user):
+			user_obj = TwitterUser.objects.get(username=user)
+
 			#FIXME: update last_visited
 			if cnt != user_obj.follow_count:
 				change_obj = FollowerChange()	
