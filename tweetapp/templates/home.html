@@ -8,7 +8,5 @@
     <p> {{user.username}} has {% ifequal follow.type 1 %} gained {% else %} lost {% endifequal %} {{follow.count}} since last visit.</p>
 	{% endif %}
     <!--FIXME: Print names of followers -->
-  {% else %}
-    <p>Looks like you are not logged in. <a href="/login/">(login)</a></p>
   {% endif %}
 {% endblock %}

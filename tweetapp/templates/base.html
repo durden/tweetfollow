@@ -5,7 +5,12 @@
   <body>
     <h1>TweetFollow {% block header %} {% endblock %}</h1>
 	<ul id="nav">
-		<li><a href="/login/">Login</a></li>
+        {% if user %}
+		    <li><a href="/refresh/">Refresh stats</a></li>
+		    <li><a href="/logout/">Logout</a></li>
+        {% else %}
+		    <li><a href="/login/">Login</a></li>
+        {% endif %}
     </ul>
     <div id="content"> {% block content %} {% endblock %}</div>
   </body>
