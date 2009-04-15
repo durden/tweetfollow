@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response
-from tweetapp.models import TwitterUser, FollowerChange, Follow
+from tweetapp.models import TwitterUser, FollowerChange, FollowPair
 from urllib2 import HTTPError
 
 import twitterapi
@@ -67,11 +67,10 @@ def login(request):
 		
 		# save followers
 		for follower in followers:
-			follow = Follow()
-			follow.following = TwitterUser(username=user)
-			follow.follower = str(follower.name)
-			follow.save()
-			#return render_to_response('login.html', {'msg' : 'follower %s' % follower.name})
+			followpair = FollowPair()
+			followpair.user = TwitterUser(username=user)
+			followpair.followerid = follower.id
+			followpair.save()
 		
 		return render_to_response('home.html', {'user' : user_obj, 'follow' : change_obj})
 
