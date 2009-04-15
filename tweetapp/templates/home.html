@@ -2,11 +2,20 @@
 
 {% block title %} Home {% endblock %}
 {% block content %}
-  {% if user %}
-    <p>{{user.username}} currently has {{user.follow_count}} followers.</p>
-	{% if follow %}
-    <p> {{user.username}} has {% ifequal follow.type 1 %} gained {% else %} lost {% endifequal %} {{follow.count}} since last visit.</p>
-	{% endif %}
-    <!--FIXME: Print names of followers -->
-  {% endif %}
+    {% if followers %}
+        {% for follower in followers %}
+            {% if forloop.first %}
+                <p>
+                    {{follower.user.username}} currently has {{follower.user.follow_count}} followers.
+                </p>
+                <ul>
+            {% endif %}
+
+            <li>{{ follower.followerid }}</li>
+
+            {% if forloop.last %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 {% endblock %}
