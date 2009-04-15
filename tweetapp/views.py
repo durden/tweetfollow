@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response
 from tweetapp.models import TwitterUser, FollowerChange, FollowPair
 from urllib2 import HTTPError
 
+import datetime
 import twitterapi
 
 def home(request):
@@ -69,11 +70,31 @@ def login(request):
     # FIXME: Exception to catch?
     user_obj.save()
 
-    # save followers
+    # Get followers as last seen by the database
+    dbFollowerPairs = FollowPair.objects.filter(user=user_obj.username, removed=None)
+
+    dbFollowerIds = set()
+    for pair in dbFollowerPairs:
+        dbFollowerIds.add(int(pair.followerid))
+    
+    curFollowerIds = set()
     for follower in followers:
+        curFollowerIds.add(int(follower.id))
+
+    # Compare database's set of followers to the current
+    added   = curFollowerIds - dbFollowerIds
+    removed = dbFollowerIds  - curFollowerIds
+
+    for follower in added:
         followpair = FollowPair()
-        followpair.user = TwitterUser(username=user)
-        followpair.followerid = follower.id
+        followpair.user = user_obj
+        followpair.followerid = follower
+        followpair.save()
+
+    for follower in removed:
+        followpair = FollowPair.objects.filter(user=user_obj.username,
+                                               followerid=follower, removed=None)[0]
+        followpair.removed = datetime.datetime.now()
         followpair.save()
     
     return render_to_response('home.html',

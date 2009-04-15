@@ -26,7 +26,7 @@ class FollowerChange(models.Model):
     # FIXME: Store the usernames of followers
 
 class FollowPair(models.Model):
-	user        = models.ForeignKey(TwitterUser, to_field='username')
-	followerid  = models.IntegerField()
-	start       = models.DateTimeField(auto_now=True)
-	stop        = models.DateTimeField(auto_now=True)
+    user        = models.ForeignKey(TwitterUser, to_field='username')
+    followerid  = models.IntegerField()
+    added       = models.DateTimeField(auto_now_add=True)
+    removed     = models.DateTimeField(null=True)
