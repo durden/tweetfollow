@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response
-from tweetapp.models import TwitterUser, FollowerChange
+from tweetapp.models import TwitterUser, FollowerChange, Follow
 from urllib2 import HTTPError
 
 import twitterapi
@@ -26,7 +26,8 @@ def login(request):
 
 		user_obj = None
 		change_obj = None
-		cnt = len(api.GetFollowers())
+		followers = api.GetFollowers()
+		cnt = len(followers)
 
 		# Update last_visited and follower_count
 		if TwitterUser.objects.filter(username=user):
@@ -63,7 +64,15 @@ def login(request):
 
 		# FIXME: Exception to catch?
 		user_obj.save()
-
+		
+		# save followers
+		for follower in followers:
+			follow = Follow()
+			follow.following = TwitterUser(username=user)
+			follow.follower = str(follower.name)
+			follow.save()
+			#return render_to_response('login.html', {'msg' : 'follower %s' % follower.name})
+		
 		return render_to_response('home.html', {'user' : user_obj, 'follow' : change_obj})
 
 	return render_to_response('login.html')
