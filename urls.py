@@ -17,5 +17,7 @@ urlpatterns = patterns('',
     # (r'^admin/(.*)', admin.site.root),
     (r'^$', home),
     (r'^login/$', login),
+    (r'^logout/$', logout),
     (r'^users/$', users),
+    (r'^refresh/$', refresh),
 )

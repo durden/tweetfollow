@@ -5,9 +5,7 @@
     {% if followers %}
         {% for follower in followers %}
             {% if forloop.first %}
-                <p>
-                    {{follower.user.username}} currently has {{follower.user.follow_count}} followers.
-                </p>
+                <h1> {{follower.user.username}} followers: </h1>
                 <ul>
             {% endif %}
 
