@@ -2,18 +2,16 @@
 
 {% block title %} Home {% endblock %}
 {% block content %}
-    {% if followers %}
-        {% for follower in followers %}
-            {% if forloop.first %}
-                <h1> {{username}} followers: </h1>
-                <ul>
-            {% endif %}
+    {% for follower in followers %}
+        {% if forloop.first %}
+            <h1> {{username}} followers: </h1>
+            <ul>
+        {% endif %}
 
-            <li>{{ follower.name }}</li>
+        <li>{{ follower.name }}</li>
 
-            {% if forloop.last %}
-                </ul>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
+        {% if forloop.last %}
+            </ul>
+        {% endif %}
+    {% endfor %}
 {% endblock %}
