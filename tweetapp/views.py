@@ -79,17 +79,34 @@ def __valid_session__(request):
 
     return False
 
+# Just a small wrapper for refresh/login to share some more code and passing
+# info to the home template
+def __show_home__(request, user, pwd):
+    # FIXME: This is weird b/c we 'validate' by getting an api instance
+    api = __get_api__(user, pwd)
+    if api is not None:
+        pairs =  __update_followers__(api, user)
+
+        # Check valid session again here b/c we can get here from login
+        # and/or refresh
+        if not __valid_session__(request):
+            request.session['user'] = user
+            request.session['pwd'] = pwd
+
+        return render_to_response('home.html', {'followers' : pairs})
+
+    return render_to_response('login.html',
+                        {'msg' : 'Twitter user/password incorrect'})
+
 def home(request):
     return render_to_response('home.html')
 
 def refresh(request):
     if __valid_session__(request):
-        api = __get_api__(request.session['user'], request.session['pwd'])
+        return __show_home__(request, request.session['user'],
+                             request.session['pwd'])
 
-        if api is not None:
-            pairs = __update_followers__(api, request.session['user'])
-            return render_to_response('home.html',{'followers' : pairs})
-
+    # Just render login w/o error b/c they probably never logged in
     return render_to_response('login.html')
 
 def logout(request):
@@ -116,19 +133,7 @@ def login(request):
         return render_to_response('login.html',
                         {'msg': 'Must enter user and pwd'})
 
-    # Validates twitter user
-    # FIXME: This is weird b/c we 'validate' by getting an api instance
-    api = __get_api__(user, pwd)
-    if api is None:
-        return render_to_response('login.html',
-                        {'msg' : 'Twitter user/password incorrect'})
-
-    request.session['user'] = user
-    request.session['pwd'] = pwd
-
-    pairs = __update_followers__(api, user)
-
-    return render_to_response('home.html', {'followers' : pairs})
+    return __show_home__(request, user, pwd)
 
 def users(request):
     usrs = TwitterUser.objects.all()
