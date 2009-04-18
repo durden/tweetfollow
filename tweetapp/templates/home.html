@@ -4,11 +4,11 @@
 {% block content %}
     {% for follower in followers %}
         {% if forloop.first %}
-            <h1> {{follower.user.username}} followers: </h1>
+            <h1> {{username}} followers: </h1>
             <ul>
         {% endif %}
 
-        <li>{{ follower.followerid }}</li>
+        <li>{{ follower.name }}</li>
 
         {% if forloop.last %}
             </ul>

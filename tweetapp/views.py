@@ -65,13 +65,7 @@ def __update_followers__(api, user):
         followpair.removed = datetime.datetime.now()
         followpair.save()
 
-    pairs = []
-
-    for followpair in FollowPair.objects.filter(user=twitteruser.username,
-                                                removed=None):
-        pairs.append(followpair)
-
-    return pairs
+    return followers
 
 def __valid_session__(request):
     if 'user' in request.session and 'pwd' in request.session:
@@ -87,7 +81,7 @@ def __show_home__(request, user, pwd):
     # FIXME: This is weird b/c we 'validate' by getting an api instance
     api = __get_api__(user, pwd)
     if api is not None:
-        pairs =  __update_followers__(api, user)
+        followers =  __update_followers__(api, user)
 
         # Check valid session again here b/c we can get here from login
         # and/or refresh
@@ -99,8 +93,9 @@ def __show_home__(request, user, pwd):
                     "chbh=a,20,20&chm=N,000000,0,-1,11" % \
                     (chart_url, len(api.GetFollowers()))
 
-        return render_to_response('home.html', {'followers' : pairs,
-                                  'chart_url' : chart_url})
+        return render_to_response('home.html',
+                                  {'followers' : followers,
+                                   'username'  : user, 'chart_url' : chart_url})
 
     return render_to_response('login.html',
                         {'msg' : 'Twitter user/password incorrect'})
