@@ -82,6 +82,8 @@ def __valid_session__(request):
 # Just a small wrapper for refresh/login to share some more code and passing
 # info to the home template
 def __show_home__(request, user, pwd):
+    chart_url = "http://chart.apis.google.com/chart?"
+
     # FIXME: This is weird b/c we 'validate' by getting an api instance
     api = __get_api__(user, pwd)
     if api is not None:
@@ -93,7 +95,12 @@ def __show_home__(request, user, pwd):
             request.session['user'] = user
             request.session['pwd'] = pwd
 
-        return render_to_response('home.html', {'followers' : pairs})
+        chart_url = "%scht=bvg&chd=t:%d&chs=100x200&chl=Followers&" \
+                    "chbh=a,20,20&chm=N,000000,0,-1,11" % \
+                    (chart_url, len(api.GetFollowers()))
+
+        return render_to_response('home.html', {'followers' : pairs,
+                                  'chart_url' : chart_url})
 
     return render_to_response('login.html',
                         {'msg' : 'Twitter user/password incorrect'})

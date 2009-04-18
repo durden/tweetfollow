@@ -14,4 +14,8 @@
             </ul>
         {% endif %}
     {% endfor %}
+
+    {% if chart_url %}
+        <img src="{{chart_url}}" alt="Follower Count"/>
+    {% endif %}
 {% endblock %}
