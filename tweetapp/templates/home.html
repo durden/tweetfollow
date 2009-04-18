@@ -4,7 +4,7 @@
 {% block content %}
     {% for follower in followers %}
         {% if forloop.first %}
-            <h1> {{username}} followers: </h1>
+            <h1> {{username}} currently has {{follower_cnt}} followers: </h1>
             <ul>
         {% endif %}
 

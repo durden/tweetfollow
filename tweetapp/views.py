@@ -82,6 +82,7 @@ def __show_home__(request, user, pwd):
     api = __get_api__(user, pwd)
     if api is not None:
         followers =  __update_followers__(api, user)
+        follower_cnt = len(followers)
 
         # Check valid session again here b/c we can get here from login
         # and/or refresh
@@ -91,11 +92,13 @@ def __show_home__(request, user, pwd):
 
         chart_url = "%scht=bvg&chd=t:%d&chs=100x200&chl=Followers&" \
                     "chbh=a,20,20&chm=N,000000,0,-1,11" % \
-                    (chart_url, len(api.GetFollowers()))
+                    (chart_url, follower_cnt)
 
         return render_to_response('home.html',
-                                  {'followers' : followers,
-                                   'username'  : user, 'chart_url' : chart_url})
+                                  {'followers'    : followers,
+                                   'follower_cnt' : follower_cnt,
+                                   'username'     : user,
+                                   'chart_url'    : chart_url})
 
     return render_to_response('login.html',
                         {'msg' : 'Twitter user/password incorrect'})
