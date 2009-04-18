@@ -65,13 +65,7 @@ def __update_followers__(api, user):
         followpair.removed = datetime.datetime.now()
         followpair.save()
 
-    pairs = []
-
-    for followpair in FollowPair.objects.filter(user=twitteruser.username,
-                                                removed=None):
-        pairs.append(followpair)
-
-    return pairs
+    return followers
 
 def __valid_session__(request):
     if 'user' in request.session and 'pwd' in request.session:
@@ -87,8 +81,10 @@ def refresh(request):
         api = __get_api__(request.session['user'], request.session['pwd'])
 
         if api is not None:
-            pairs = __update_followers__(api, request.session['user'])
-            return render_to_response('home.html',{'followers' : pairs})
+            followers = __update_followers__(api, request.session['user'])
+            return render_to_response('home.html',
+                {'followers' : followers,
+                 'username' : request.session['user']})
 
     return render_to_response('login.html')
 
@@ -126,9 +122,11 @@ def login(request):
     request.session['user'] = user
     request.session['pwd'] = pwd
 
-    pairs = __update_followers__(api, user)
+    followers = __update_followers__(api, user)
 
-    return render_to_response('home.html', {'followers' : pairs})
+    return render_to_response('home.html',
+                {'followers' : followers,
+                 'username' : request.session['user']})
 
 def users(request):
     usrs = TwitterUser.objects.all()
