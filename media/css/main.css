@@ -1,3 +1,4 @@
+/***************************** MAIN STRUCTURE *****************************/
 body {
 	font-size: 12pt;
 	font-family: Verdana, Helvetia, sans-serif;
@@ -29,6 +30,15 @@ ul#nav {
     clear: left;
 }
 
+#footer {
+    clear: left;
+}
+
+/***************************** PAGE SPECIFIC IDS *****************************/
+#current_followers {
+    float: left;
+}
+
 fieldset#login {
     border: 0px;
 }
@@ -41,4 +51,10 @@ fieldset#login {
 
 fieldset p {
     clear: left;
+}
+
+/***************************** IMAGES *****************************/
+img.followers {
+    margin: 0px 0px 0px 100px;
+    float: left;
 }

@@ -90,8 +90,8 @@ def __show_home__(request, user, pwd):
             request.session['user'] = user
             request.session['pwd'] = pwd
 
-        chart_url = "%scht=bvg&chd=t:%d&chs=100x200&chl=Followers&" \
-                    "chbh=a,20,20&chm=N,000000,0,-1,11" % \
+        chart_url = "%scht=bvg&chd=t:%d&chs=150x300&chl=Followers&" \
+                    "chbh=a,20,20&chm=N,000000,0,-1,14" % \
                     (chart_url, follower_cnt)
 
         return render_to_response('home.html',

@@ -4,8 +4,9 @@
 {% block content %}
     {% for follower in followers %}
         {% if forloop.first %}
-            <h1> {{username}} currently has {{follower_cnt}} followers: </h1>
-            <ul>
+            <h1>{{username}}</h1>
+            <p>{{follower_cnt}} followers</p>
+            <ul id="current_followers">
         {% endif %}
 
         <li>{{ follower.name }}</li>
@@ -16,6 +17,6 @@
     {% endfor %}
 
     {% if chart_url %}
-        <img src="{{chart_url}}" alt="Follower Count"/>
+        <img class="followers" src="{{chart_url}}" alt="Follower Count"/>
     {% endif %}
 {% endblock %}
