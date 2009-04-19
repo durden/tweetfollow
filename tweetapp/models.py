@@ -1,9 +1,5 @@
 from django.db import models
 
-#FIXME: Some notable problems with this implementation:
-#		1. We can't detect ALL follower changes (specific users, etc), only changes in the overall
-#		   follower count trigger a 'save'.
-
 class TwitterUser(models.Model):
     username = models.CharField(max_length=50)
 

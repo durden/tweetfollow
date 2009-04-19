@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import *
 from tweetfollow.tweetapp.views import *
+from django.conf import settings
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -21,3 +22,8 @@ urlpatterns = patterns('',
     (r'^users/$', users),
     (r'^refresh/$', refresh),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'^tmedia/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.STATIC_MEDIA_URL, 'show_indexes' : True}),)
