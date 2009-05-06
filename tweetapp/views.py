@@ -41,27 +41,27 @@ def __update_followers__(api, user):
     dbFollowerPairs = FollowPair.objects.filter(user=twitteruser.username,
                                                 removed=None)
 
-    dbFollowerIds = set()
+    dbFollowers = set()
     for pair in dbFollowerPairs:
-        dbFollowerIds.add(int(pair.followerid))
-    
-    curFollowerIds = set()
+        dbFollowers.add(pair.name)
+
+    curFollowers = set()
     for follower in followers:
-        curFollowerIds.add(int(follower.id))
+        curFollowers.add(follower.screen_name)
 
     # Compare database's set of followers to the current
-    added   = curFollowerIds - dbFollowerIds
-    removed = dbFollowerIds  - curFollowerIds
+    added   = curFollowers - dbFollowers
+    removed = dbFollowers  - curFollowers
 
     for follower in added:
         followpair = FollowPair()
         followpair.user = twitteruser
-        followpair.followerid = follower
+        followpair.follower = follower
         followpair.save()
 
     for follower in removed:
         followpair = FollowPair.objects.filter(user=twitteruser.username,
-                                               followerid=follower, removed=None)[0]
+                                               follower=follower, removed=None)[0]
         followpair.removed = datetime.datetime.now()
         followpair.save()
 
