@@ -43,7 +43,7 @@ def __update_followers__(api, user):
 
     dbFollowers = set()
     for pair in dbFollowerPairs:
-        dbFollowers.add(pair.name)
+        dbFollowers.add(pair.follower)
 
     curFollowers = set()
     for follower in followers:
