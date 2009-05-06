@@ -65,7 +65,16 @@ def __update_followers__(api, user):
         followpair.removed = datetime.datetime.now()
         followpair.save()
 
-    return (followers, added, removed)
+    # Update last login
+    if twitteruser.lastlogin is not None:
+        lastlogin = twitteruser.lastlogin
+    else:
+        lastlogin = None
+
+    twitteruser.lastlogin = datetime.datetime.now()
+    twitteruser.save()
+
+    return (followers, added, removed, lastlogin)
 
 def __valid_session__(request):
     if 'user' in request.session and 'pwd' in request.session:
@@ -81,7 +90,7 @@ def __show_home__(request, user, pwd):
     # FIXME: This is weird b/c we 'validate' by getting an api instance
     api = __get_api__(user, pwd)
     if api is not None:
-        followers, added, removed =  __update_followers__(api, user)
+        followers, added, removed, lastlogin =  __update_followers__(api, user)
         follower_cnt = len(followers)
 
         # Check valid session again here b/c we can get here from login
@@ -100,6 +109,7 @@ def __show_home__(request, user, pwd):
                                    'removed'      : removed,
                                    'follower_cnt' : follower_cnt,
                                    'username'     : user,
+                                   'lastlogin'    : lastlogin,
                                    'chart_url'    : chart_url})
 
     return render_to_response('login.html',
