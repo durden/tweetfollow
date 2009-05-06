@@ -65,7 +65,7 @@ def __update_followers__(api, user):
         followpair.removed = datetime.datetime.now()
         followpair.save()
 
-    return followers
+    return (followers, added, removed)
 
 def __valid_session__(request):
     if 'user' in request.session and 'pwd' in request.session:
@@ -81,7 +81,7 @@ def __show_home__(request, user, pwd):
     # FIXME: This is weird b/c we 'validate' by getting an api instance
     api = __get_api__(user, pwd)
     if api is not None:
-        followers =  __update_followers__(api, user)
+        followers, added, removed =  __update_followers__(api, user)
         follower_cnt = len(followers)
 
         # Check valid session again here b/c we can get here from login
@@ -96,6 +96,8 @@ def __show_home__(request, user, pwd):
 
         return render_to_response('home.html',
                                   {'followers'    : followers,
+                                   'added'        : added,
+                                   'removed'      : removed,
                                    'follower_cnt' : follower_cnt,
                                    'username'     : user,
                                    'chart_url'    : chart_url})
