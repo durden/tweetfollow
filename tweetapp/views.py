@@ -1,19 +1,17 @@
 from django.shortcuts import render_to_response
 from tweetapp.models import TwitterUser, FollowPair
-from urllib2 import HTTPError
 from django.http import HttpResponseRedirect
 
 import datetime
-import twitterapi
+import twitter
 
 def __get_api__(user, pwd):
     # Verify it is the correct twitter password
-    api = twitterapi.Api(username=user, password=pwd)
+    api = twitter.Twitter(user, pwd)
 
     try:
-        api.GetUserTimeline()
-    # HttpError (401) is raised if bad password
-    except (twitterapi.TwitterError, HTTPError):
+        api.statuses.friends_timeline()
+    except twitter.api.TwitterError:
         return None
 
     return api
@@ -31,10 +29,27 @@ def __get_twitteruser__(user):
     return twitteruser
 
 
+def __get_all_followers__(api):
+    ii = 0
+    followers = set()
+
+    while True:
+        cur = api.statuses.followers(page=ii)
+        if not len(cur):
+            break
+
+        for follower in cur:
+            followers.add(follower['screen_name'])
+
+        ii += 1
+
+    return followers
+
 #FIXME: It would be nice to pass 1 parameter here (api) and get username
 #       from there
 def __update_followers__(api, user):
-    followers = api.GetFollowers()
+
+    curFollowers = __get_all_followers__(api)
     twitteruser = __get_twitteruser__(user)
 
     # Get followers as last seen by the database
@@ -44,10 +59,6 @@ def __update_followers__(api, user):
     dbFollowers = set()
     for pair in dbFollowerPairs:
         dbFollowers.add(pair.follower)
-
-    curFollowers = set()
-    for follower in followers:
-        curFollowers.add(follower.screen_name)
 
     # Compare database's set of followers to the current
     added   = curFollowers - dbFollowers
@@ -74,7 +85,7 @@ def __update_followers__(api, user):
     twitteruser.lastlogin = datetime.datetime.now()
     twitteruser.save()
 
-    return (followers, added, removed, lastlogin)
+    return (curFollowers, added, removed, lastlogin)
 
 def __valid_session__(request):
     if 'user' in request.session and 'pwd' in request.session:
