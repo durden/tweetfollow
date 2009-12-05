@@ -16,11 +16,11 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # (r'^admin/(.*)', admin.site.root),
-    (r'^$', home),
-    (r'^login/$', login),
-    (r'^logout/$', logout),
+    (r'^$', register),
+    (r'^register/$', register),
     (r'^users/$', users),
-    (r'^refresh/$', refresh),
+    (r'^refresh/(.*)', update_followers),
+    (r'^update/(.*)', update_followers),
 )
 
 if settings.DEBUG:
