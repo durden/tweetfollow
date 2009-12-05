@@ -30,19 +30,19 @@ def __get_twitteruser__(user):
 
 
 def __get_all_followers__(api):
-    ii = 0
+    ii = -1
     followers = set()
 
     while True:
-        cur = api.statuses.followers(page=ii)
-        if not len(cur):
+        cur = api.statuses.followers(cursor=ii)
+        print "Found", len(cur['users'])
+        if not len(cur['users']):
             break
 
-        for follower in cur:
+        for follower in cur['users']:
             followers.add(follower['screen_name'])
 
-        ii += 1
-
+        ii = cur['next_cursor']
     return followers
 
 #FIXME: It would be nice to pass 1 parameter here (api) and get username
