@@ -89,7 +89,7 @@ def register(request):
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
-        
+
 def users(request):
     usrs = TwitterUser.objects.all()
     return render_to_response('users.html', {'users' : usrs})
