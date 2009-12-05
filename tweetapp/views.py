@@ -1,9 +1,12 @@
 from django.shortcuts import render_to_response
-from tweetapp.models import TwitterUser, FollowPair
+from tweetapp.models import TwitterUser, Followers
 from django.http import HttpResponseRedirect
 
 import datetime
 import twitter
+
+class AlreadyRegistered(Exception): pass
+
 
 def __get_api__(user, pwd):
     # Verify it is the correct twitter password
@@ -16,26 +19,25 @@ def __get_api__(user, pwd):
 
     return api
  
+
 def __get_twitteruser__(user):
     if TwitterUser.objects.filter(username=user):
-        twitteruser = TwitterUser.objects.get(username=user)
+        raise AlreadyRegistered()
 
-    else:
-        twitteruser = TwitterUser(username=user)
+    twitteruser = TwitterUser(username=user)
 
-        # FIXME: Exception to catch?
-        twitteruser.save()
+    # FIXME: Exception to catch?
+    twitteruser.save()
 
     return twitteruser
 
 
-def __get_all_followers__(api):
+def __get_all_followers__(api, user):
     ii = -1
     followers = set()
 
     while True:
-        cur = api.statuses.followers(cursor=ii)
-        print "Found", len(cur['users'])
+        cur = api.statuses.followers(screen_name=user, cursor=ii)
         if not len(cur['users']):
             break
 
@@ -45,124 +47,49 @@ def __get_all_followers__(api):
         ii = cur['next_cursor']
     return followers
 
-#FIXME: It would be nice to pass 1 parameter here (api) and get username
-#       from there
-def __update_followers__(api, user):
 
-    curFollowers = __get_all_followers__(api)
-    twitteruser = __get_twitteruser__(user)
+#def update_followers(request, user):
+def update_followers(user):
+    prev = set()
+    db_usr = TwitterUser.objects.filter(username=user)[0]
 
-    # Get followers as last seen by the database
-    dbFollowerPairs = FollowPair.objects.filter(user=twitteruser.username,
-                                                removed=None)
+    for usr in Followers.objects.filter(user=user):
+        prev.add(usr.follower)
 
-    dbFollowers = set()
-    for pair in dbFollowerPairs:
-        dbFollowers.add(pair.follower)
+    curr = __get_all_followers__(__get_api__('glow__worm', 'glowworm'), user)
 
-    # Compare database's set of followers to the current
-    added   = curFollowers - dbFollowers
-    removed = dbFollowers  - curFollowers
+    added = curr - prev
+    removed = prev - curr
 
-    for follower in added:
-        followpair = FollowPair()
-        followpair.user = twitteruser
-        followpair.follower = follower
-        followpair.save()
+    print "Removed:", len(removed)
+    for usr in removed:
+        tmp = Followers.objects.filter(follower=usr)
+        tmp.delete()
 
-    for follower in removed:
-        followpair = FollowPair.objects.filter(user=twitteruser.username,
-                                               follower=follower, removed=None)[0]
-        followpair.removed = datetime.datetime.now()
-        followpair.save()
-
-    # Update last login
-    if twitteruser.lastlogin is not None:
-        lastlogin = twitteruser.lastlogin
-    else:
-        lastlogin = None
-
-    twitteruser.lastlogin = datetime.datetime.now()
-    twitteruser.save()
-
-    return (curFollowers, added, removed, lastlogin)
-
-def __valid_session__(request):
-    if 'user' in request.session and 'pwd' in request.session:
-        return True
-
-    return False
-
-# Just a small wrapper for refresh/login to share some more code and passing
-# info to the home template
-def __show_home__(request, user, pwd):
-    chart_url = "http://chart.apis.google.com/chart?"
-
-    # FIXME: This is weird b/c we 'validate' by getting an api instance
-    api = __get_api__(user, pwd)
-    if api is not None:
-        followers, added, removed, lastlogin =  __update_followers__(api, user)
-        follower_cnt = len(followers)
-
-        # Check valid session again here b/c we can get here from login
-        # and/or refresh
-        if not __valid_session__(request):
-            request.session['user'] = user
-            request.session['pwd'] = pwd
-
-        chart_url = "%scht=bvg&chd=t:%d&chs=150x300&chl=Followers&" \
-                    "chbh=a,20,20&chm=N,000000,0,-1,14" % \
-                    (chart_url, follower_cnt)
-
-        return render_to_response('home.html',
-                                  {'followers'    : followers,
-                                   'added'        : added,
-                                   'removed'      : removed,
-                                   'follower_cnt' : follower_cnt,
-                                   'username'     : user,
-                                   'lastlogin'    : lastlogin,
-                                   'chart_url'    : chart_url})
-
-    return render_to_response('login.html',
-                        {'msg' : 'Twitter user/password incorrect'})
-
-def home(request):
-    return render_to_response('home.html')
-
-def refresh(request):
-    if __valid_session__(request):
-        return __show_home__(request, request.session['user'],
-                             request.session['pwd'])
-
-    # Just render login w/o error b/c they probably never logged in
-    return render_to_response('login.html')
-
-def logout(request):
-    if __valid_session__(request):
-        del request.session['user']
-        del request.session['pwd']
-
-    return render_to_response('login.html')
-
+    print "Added:", len(added)
+    for usr in added:
+        tmp = Followers(user=db_usr, follower=usr)
+        tmp.save()
+        print usr
+        
 # FIXME: Change all requests that use POST data to return HttpResponseRedirect
 #        (http://docs.djangoproject.com/en/dev/intro/tutorial04/)
-def login(request):
-    # If they are already logged in, just refresh
-    if __valid_session__(request):
-        return HttpResponseRedirect('/refresh')
-
+def register(request):
     if request.method != 'POST':
-        return render_to_response('login.html')
+        return render_to_response('register.html')
 
     user = request.POST.get('user', '')
-    pwd = request.POST.get('pwd', '')
 
-    if user == '' or pwd == '':
-        return render_to_response('login.html',
-                        {'msg': 'Must enter user and pwd'})
+    if user == '':
+        return render_to_response('register.html',
+                        {'msg': 'Must enter username'})
 
-    return __show_home__(request, user, pwd)
-
+    try:
+        usr = __get_twitteruser__(user)
+    except AlreadyRegistered:
+        return render_to_response('register.html',
+                        {'msg': 'Already registered'})
+        
 def users(request):
     usrs = TwitterUser.objects.all()
     return render_to_response('users.html', {'users' : usrs})
