@@ -60,12 +60,10 @@ def __update_followers__(user):
     added = curr - prev
     removed = prev - curr
 
-    print "Removed:", len(removed)
     for usr in removed:
         tmp = Followers.objects.filter(follower=usr)
         tmp.delete()
 
-    print "Added:", len(added)
     for usr in added:
         tmp = Followers(user=db_usr, follower=usr)
         tmp.save()
