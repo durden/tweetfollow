@@ -2,6 +2,7 @@ from django.db import models
 
 class TwitterUser(models.Model):
     username = models.CharField(max_length=50)
+    email = models.EmailField()
 
 class Followers(models.Model):
     user        = models.ForeignKey(TwitterUser, to_field='username')

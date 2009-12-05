@@ -20,11 +20,11 @@ def __get_api__(user, pwd):
     return api
  
 
-def __get_twitteruser__(user):
+def __get_twitteruser__(user, email):
     if TwitterUser.objects.filter(username=user):
         raise AlreadyRegistered()
 
-    twitteruser = TwitterUser(username=user)
+    twitteruser = TwitterUser(username=user, email=email)
 
     # FIXME: Exception to catch?
     twitteruser.save()
@@ -48,8 +48,7 @@ def __get_all_followers__(api, user):
     return followers
 
 
-#def update_followers(request, user):
-def update_followers(user):
+def __update_followers__(user):
     prev = set()
     db_usr = TwitterUser.objects.filter(username=user)[0]
 
@@ -72,6 +71,11 @@ def update_followers(user):
         tmp.save()
         print usr
         
+
+def update_followers(request, user):
+    __update_followers__(user)
+
+
 # FIXME: Change all requests that use POST data to return HttpResponseRedirect
 #        (http://docs.djangoproject.com/en/dev/intro/tutorial04/)
 def register(request):
@@ -79,16 +83,19 @@ def register(request):
         return render_to_response('register.html')
 
     user = request.POST.get('user', '')
+    email = request.POST.get('email', '')
 
-    if user == '':
+    if user == '' or email == '':
         return render_to_response('register.html',
-                        {'msg': 'Must enter username'})
+                        {'msg': 'Must enter username/e-mail'})
 
     try:
-        usr = __get_twitteruser__(user)
+        usr = __get_twitteruser__(user, email)
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
+
+    return render_to_response('home.html')
 
 def users(request):
     usrs = TwitterUser.objects.all()

@@ -4,16 +4,16 @@
 
 {% block content %}
   <p>{{ msg }} </p>
-  <form action="/login/" id="reg" method="post">
-    <fieldset id='login'>
+  <form action="/register/" id="reg" method="post">
+    <fieldset id='register'>
       <legend> Twitter credentials </legend>
       <p>
          <label for="user">User:</label>
          <input type="text" id="user" name="user"/>
       </p>
       <p>
-         <label for="pwd">Password:</label>
-         <input type="password" id="pwd" name="pwd"/>
+         <label for="email">E-mail:</label>
+         <input type="email" id="email" name="email"/>
       </p>
       <p><input type="submit" value="submit"/></p>
     </fieldset>
