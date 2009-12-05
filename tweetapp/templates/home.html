@@ -1,56 +1,6 @@
 {% extends "base.html" %}
 
-{% load display_extras %}
-
 {% block title %} Home {% endblock %}
 {% block content %}
-    <h1>{{username}}</h1>
-    {% if added or removed %}
-        {% if lastlogin %}
-            <p>Activity since {{ lastlogin|date:"D d, M Y h:i A" }}:</p>
-        {% endif %}
-        {% for follower in added %}
-            {% if forloop.first %}
-                <p>Added</p>
-                <ul id="added_followers">
-            {% endif %}
-
-            <li>{{ follower }}</li>
-
-            {% if forloop.last %}
-                </ul>
-            {% endif %}
-        {% endfor %}
-        {% for follower in removed %}
-            {% if forloop.first %}
-                <p>Lost</p>
-                <ul id="lost_followers">
-            {% endif %}
-
-            <li>{{ follower }}</li>
-
-            {% if forloop.last %}
-                </ul>
-            {% endif %}
-        {% endfor %}
-    {% else %}
-        <p>No activity since {{ lastlogin|date:"D d, M Y h:i A" }}</p>
-    {% endif %}
-    <br style="clear:both">
-    {% for follower in followers %}
-        {% if forloop.first %}
-            <p>{{follower_cnt}} followers:</p>
-            <ul id="current_followers">
-        {% endif %}
-
-        <li>{{ follower }}</li>
-
-        {% if forloop.last %}
-            </ul>
-        {% endif %}
-    {% endfor %}
-
-    {% if chart_url %}
-        <img class="followers" src="{{chart_url}}" alt="Follower Count"/>
-    {% endif %}
+    <p>Thanks for registering.  Hopefully you won't ever get any e-mails from us!</p>
 {% endblock %}

@@ -10,12 +10,8 @@
     <div id="main">
         <h1>TweetFollow {% block header %} {% endblock %}</h1>
         <ul id="nav">
-            {% if followers %}
-                <li><a href="/refresh/">Refresh stats</a></li>
-                <li><a href="/logout/">Logout</a></li>
-            {% else %}
-                <li><a href="/login/">Login</a></li>
-            {% endif %}
+                <!--<li><a href="/refresh/">Refresh followers</a></li>-->
+                <li><a href="/register/">Register</a></li>
                 <li><a href="/users/">Tweetfollow Users</a></li>
         </ul>
         <div id="content">{% block content %} {% endblock %}</div>
