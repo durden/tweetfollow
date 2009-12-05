@@ -69,10 +69,13 @@ def __update_followers__(user):
         tmp.save()
         print usr
         
+    return (added, removed)
 
 def update_followers(request, user):
-    __update_followers__(user)
+    added, removed = __update_followers__(user)
 
+    return render_to_response('followers.html', {'user' : user,
+                                        'added' : added, 'removed' : removed})
 
 # FIXME: Change all requests that use POST data to return HttpResponseRedirect
 #        (http://docs.djangoproject.com/en/dev/intro/tutorial04/)
