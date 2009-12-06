@@ -48,21 +48,6 @@ def __get_all_followers__(api, user):
         ii = cur['next_cursor']
     return followers
 
-    if removed:
-        db_usr = TwitterUser.objects.filter(username=user)[0]
-        if db_usr.email != "":
-            body = "<p>The following users recently un-followed you:</p><ul>"
-            for usr in removed:
-                body += '<li><a href="http://www.twitter.com/%s">%s</a></li>' % (usr, usr)
-
-            body += "</ul>"
-
-            msg = EmailMessage("TweetFollow: Lost %d followers" % (len(removed)),
-                            body, 'follow@tweetfollow.durden.webfactional.com',
-                            [db_usr.email])
-            msg.content_subtype = 'html'
-            msg.send()
-
 
 def __update_followers__(user):
     prev = set()
@@ -89,6 +74,21 @@ def __update_followers__(user):
 
 def update_followers(request, user):
     added, removed = __update_followers__(user)
+
+    if removed:
+        db_usr = TwitterUser.objects.filter(username=user)[0]
+        if db_usr.email != "":
+            body = "<p>The following users recently un-followed you:</p><ul>"
+            for usr in removed:
+                body += '<li><a href="http://www.twitter.com/%s">%s</a></li>' % (usr, usr)
+
+            body += "</ul>"
+
+            msg = EmailMessage("TweetFollow: Lost %d followers" % (len(removed)),
+                            body, 'follow@tweetfollow.durden.webfactional.com',
+                            [db_usr.email])
+            msg.content_subtype = 'html'
+            msg.send()
 
     return render_to_response('followers.html', {'user' : user,
                                         'added' : added, 'removed' : removed})
