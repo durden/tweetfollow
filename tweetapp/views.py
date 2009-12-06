@@ -1,6 +1,7 @@
 from django.shortcuts import render_to_response
-from tweetapp.models import TwitterUser, Followers
+from models import TwitterUser, Followers
 from django.http import HttpResponseRedirect
+from django.core.mail import EmailMessage
 
 import datetime
 import twitter
@@ -46,6 +47,21 @@ def __get_all_followers__(api, user):
 
         ii = cur['next_cursor']
     return followers
+
+    if removed:
+        db_usr = TwitterUser.objects.filter(username=user)[0]
+        if db_usr.email != "":
+            body = "<p>The following users recently un-followed you:</p><ul>"
+            for usr in removed:
+                body += '<li><a href="http://www.twitter.com/%s">%s</a></li>' % (usr, usr)
+
+            body += "</ul>"
+
+            msg = EmailMessage("TweetFollow: Lost %d followers" % (len(removed)),
+                            body, 'follow@tweetfollow.durden.webfactional.com',
+                            [db_usr.email])
+            msg.content_subtype = 'html'
+            msg.send()
 
 
 def __update_followers__(user):
@@ -96,7 +112,8 @@ def register(request):
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
 
-    return render_to_response('home.html')
+    msg = "Thanks for registering.  Hopefully you'll never get an e-mail from us!"
+    return render_to_response('home.html', {'msg' : msg})
 
 def users(request):
     usrs = TwitterUser.objects.all()
