@@ -21,6 +21,7 @@ urlpatterns = patterns('',
     (r'^users/$', users),
     (r'^refresh/(.*)', update_followers),
     (r'^update/(.*)', update_followers),
+    (r'^update_all/$', update_all),
 )
 
 if settings.DEBUG:

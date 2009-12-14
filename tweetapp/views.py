@@ -77,7 +77,7 @@ def update_followers(request, user):
 
     if removed:
         db_usr = TwitterUser.objects.filter(username=user)[0]
-        if db_usr.email != "":
+        if db_usr.email != "" and len(removed):
             body = "<p>The following users recently un-followed you:</p><ul>"
             for usr in removed:
                 body += '<li><a href="http://www.twitter.com/%s">%s</a></li>' % (usr, usr)
@@ -92,6 +92,12 @@ def update_followers(request, user):
 
     return render_to_response('followers.html', {'user' : user,
                                         'added' : added, 'removed' : removed})
+
+def update_all(request):
+    for user in TwitterUser.objects.all():
+        update_followers(request, user.username)
+
+    return render_to_response('register.html')
 
 # FIXME: Change all requests that use POST data to return HttpResponseRedirect
 #        (http://docs.djangoproject.com/en/dev/intro/tutorial04/)
