@@ -7,15 +7,17 @@
   <form action="/register/" id="reg" method="post">
     <fieldset id='register'>
       <legend> Twitter credentials </legend>
-      <p>
-         <label for="user">User:</label>
-         <input type="text" id="user" name="user"/>
-      </p>
-      <p>
+      <ul>
+         <li>
+            <label for="user">User:</label>
+            <input type="text" id="user" name="user" class="field"/>
+        </li>
+        <li>
          <label for="email">E-mail:</label>
-         <input type="email" id="email" name="email"/>
-      </p>
-      <p><input type="submit" value="submit"/></p>
+         <input type="email" id="email" name="email" class="field"/>
+        </li>
+        <li><input type="submit" value="submit" class="button"/></li>
+      </ul>
     </fieldset>
   </form>
 {% endblock %}
