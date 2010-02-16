@@ -1,3 +1,4 @@
+from django.views.generic.simple import direct_to_template
 from django.conf.urls.defaults import *
 from tweetfollow.tweetapp.views import *
 from django.conf import settings
@@ -18,6 +19,7 @@ urlpatterns = patterns('',
     # (r'^admin/(.*)', admin.site.root),
     (r'^$', register),
     (r'^register/$', register),
+    (r'^about/$', direct_to_template, {'template': 'about.html'}),
     (r'^users/$', users),
     (r'^refresh/(.*)', update_followers),
     (r'^update/(.*)', update_followers),

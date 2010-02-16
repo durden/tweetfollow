@@ -112,6 +112,9 @@ def register(request):
         return render_to_response('register.html',
                         {'msg': 'Must enter username/e-mail'})
 
+    # FIXME: Validate the email is the one associated with the twitter user
+    # FIXME: Verify twitter user exists
+
     try:
         usr = __get_twitteruser__(user, email)
     except AlreadyRegistered:
