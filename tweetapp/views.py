@@ -23,6 +23,11 @@ class InvalidTwitterCred(Exception):
     pass
 
 
+class MissingLocalUser(Exception):
+    """User doesn't exist in local DB"""
+    pass
+
+
 def _get_api(user, pwd):
     """Attempt to create an api object for given twitter credentials
         - Raises InvalidTwitterCred if invalid user/pass combo
@@ -110,13 +115,20 @@ def _get_all_followers(user):
 def _update_followers(user):
     """Update the followers for twitter user
         - Raises InvalidTwitterCred if unable to login to query twitter
+
+        - Raises MissingLocalUser if user doesn't exist in local DB
     """
+
+    # Verify user exists locally
+    try:
+        db_usr = TwitterUser.objects.filter(username=user)[0]
+    except IndexError:
+       raise MissingLocalUser()
 
     # Get current followers (rasies exception if validation fails)
     curr = _get_all_followers(user)
 
     prev = set()
-    db_usr = TwitterUser.objects.filter(username=user)[0]
 
     for usr in Followers.objects.filter(user=user):
         prev.add(usr.follower)
@@ -143,6 +155,9 @@ def update_followers(request, user):
     except InvalidTwitterCred:
         return render_to_response('register.html',
                         {'msg': 'Unable to find Twitter User (%s)' % (user)})
+    except MissingLocalUser:
+        return render_to_response('register.html',
+                        {'msg': 'Please register user (%s) first' % (user)})
 
     if removed:
         db_usr = TwitterUser.objects.filter(username=user)[0]

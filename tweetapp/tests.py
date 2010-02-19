@@ -131,6 +131,15 @@ class RequestTests(TestCase):
         self.failUnlessEqual(len(response.context[0]['users']), 1)
         self.assertTemplateUsed(response, 'users.html')
 
+    def test_update_req_not_registered(self):
+        """Update fails b/c user not registered locally"""
+
+        user = 'durden20'
+        response = self.client.get('/update/durden20')
+        self.assertTemplateUsed(response, 'register.html')
+        self.assertContains(response,
+                            'Please register user (%s) first' % (user))
+
 
 class ViewHelperTests(TestCase):
     """Class of tests for tweetapp views.py helper functions"""
