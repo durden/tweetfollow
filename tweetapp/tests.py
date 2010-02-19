@@ -75,8 +75,37 @@ class RequestTests(TestCase):
 
     def test_register_req_invalid_twitter_user(self):
         """Register fails if user doesn't exist on twitter"""
-        response = self.client.post('/register/', {'username': 'baduser123321',
+
+        name = 'baduser123321'
+        response = self.client.post('/register/', {'username': name,
                                                     'email': TEST_EMAIL})
+
+        self.assertTemplateUsed(response, 'register.html')
+        self.assertContains(response,
+                                'Unable to find Twitter User (%s)' % (name))
+
+    def test_register_req_already_registered(self):
+        """Register fails is user already registered"""
+
+        # Add user
+        user = TwitterUser(username=views.USER, email=TEST_EMAIL)
+        user.save()
+
+        # Register again
+        response = self.client.post('/register/', {'username': user.username,
+                                                    'email': user.email})
+
+        self.assertTemplateUsed(response, 'register.html')
+        self.assertContains(response, 'Already registered')
+
+    def test_register_req_invalid_email(self):
+        """Register fails with invalid e-mail"""
+
+        response = self.client.post('/register/', {'username': views.USER,
+                                                    'email': 'invalidemail'})
+
+        self.assertTemplateUsed(response, 'register.html')
+        self.assertContains(response, 'Must enter valid e-mail')
 
     def test_users_req(self):
         """Verify users request shows all registered users"""
