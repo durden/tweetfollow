@@ -21,7 +21,7 @@ class InvalidTwitterCred(Exception):
     pass
 
 
-def __get_api__(user, pwd):
+def _get_api(user, pwd):
     """Attempt to create an api object for given twitter credentials
         - Raises InvalidTwitterCred if invalid user/pass combo
     """
@@ -41,14 +41,14 @@ def __get_api__(user, pwd):
     return api
 
 
-def __lookup_twitter_user__(user):
+def _lookup_twitter_user(user):
     """Look up user from twitter and return dictionary of user
         - See twitter api users/show for info. on return info
 
         - Raises InvalidTwitterCred if user doesn't exist
     """
 
-    api = __get_api__(USER, PASS)
+    api = _get_api(USER, PASS)
 
     try:
         user = api.users.show(screen_name=user)
@@ -61,7 +61,7 @@ def __lookup_twitter_user__(user):
     return user
 
 
-def __get_twitteruser__(user, email):
+def _get_twitteruser(user, email):
     """Find/create local TwitterUser DB object
         - Raises InvalidTwitterCred if user doesn't exist on twitter's side
 
@@ -72,7 +72,7 @@ def __get_twitteruser__(user, email):
         raise AlreadyRegistered()
 
     # Raises exception is user doesn't exist
-    twitter_user = __lookup_twitter_user__(user)
+    twitter_user = _lookup_twitter_user(user)
 
     local_user = TwitterUser(username=user, email=email)
 
@@ -82,13 +82,13 @@ def __get_twitteruser__(user, email):
     return twitter_user
 
 
-def __get_all_followers__(user):
+def _get_all_followers(user):
     """Get all the followers for twitter user
         - Raises InvalidTwitterCred if unable to login to query twitter
     """
 
     # Get api object for query (raises exception if validation fails)
-    api = __get_api__(USER, PASS)
+    api = _get_api(USER, PASS)
 
     ii = -1
     followers = set()
@@ -105,13 +105,13 @@ def __get_all_followers__(user):
     return followers
 
 
-def __update_followers__(user):
+def _update_followers(user):
     """Update the followers for twitter user
         - Raises InvalidTwitterCred if unable to login to query twitter
     """
 
     # Get current followers (rasies exception if validation fails)
-    curr = __get_all_followers__(user)
+    curr = _get_all_followers(user)
 
     prev = set()
     db_usr = TwitterUser.objects.filter(username=user)[0]
@@ -137,7 +137,7 @@ def update_followers(request, user):
     """Handle request for updating followers for given user"""
 
     try:
-        added, removed = __update_followers__(user)
+        added, removed = _update_followers(user)
     except InvalidTwitterCred:
         return render_to_response('register.html',
                         {'msg': 'Unable to find Twitter User (%s)' % (user)})
@@ -188,7 +188,7 @@ def register(request):
                         {'msg': 'Must enter username/e-mail'})
 
     try:
-        __get_twitteruser__(user, email)
+        _get_twitteruser(user, email)
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
