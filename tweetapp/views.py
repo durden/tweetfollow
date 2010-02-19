@@ -162,6 +162,8 @@ def update_followers(request, user):
 
 
 def update_all(request):
+    """Handle request to update followers for all existing registered users"""
+
     for user in TwitterUser.objects.all():
         update_followers(request, user.username)
 
@@ -173,6 +175,8 @@ def update_all(request):
 
 
 def register(request):
+    """Handle request for registering new user"""
+
     if request.method != 'POST':
         return render_to_response('register.html')
 
@@ -198,5 +202,7 @@ def register(request):
 
 
 def users(request):
-    usrs = TwitterUser.objects.all()
-    return render_to_response('users.html', {'users': usrs})
+    """Handle request for displaying all registered users"""
+
+    return render_to_response('users.html',
+                                {'users': TwitterUser.objects.all()})
