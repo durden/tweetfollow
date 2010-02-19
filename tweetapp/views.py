@@ -6,7 +6,9 @@ from django.core.mail import EmailMessage
 import datetime
 import twitter
 
-class AlreadyRegistered(Exception): pass
+
+class AlreadyRegistered(Exception):
+    pass
 
 
 def __get_api__(user, pwd):
@@ -19,7 +21,7 @@ def __get_api__(user, pwd):
         return None
 
     return api
- 
+
 
 def __get_twitteruser__(user, email):
     if TwitterUser.objects.filter(username=user):
@@ -69,8 +71,9 @@ def __update_followers__(user):
         tmp = Followers(user=db_usr, follower=usr)
         tmp.save()
         print usr
-        
+
     return (added, removed)
+
 
 def update_followers(request, user):
     added, removed = __update_followers__(user)
@@ -90,8 +93,9 @@ def update_followers(request, user):
             msg.content_subtype = 'html'
             msg.send()
 
-    return render_to_response('followers.html', {'user' : user,
-                                        'added' : added, 'removed' : removed})
+    return render_to_response('followers.html', {'user': user,
+                                        'added': added, 'removed': removed})
+
 
 def update_all(request):
     for user in TwitterUser.objects.all():
@@ -99,8 +103,11 @@ def update_all(request):
 
     return render_to_response('register.html')
 
+
 # FIXME: Change all requests that use POST data to return HttpResponseRedirect
 #        (http://docs.djangoproject.com/en/dev/intro/tutorial04/)
+
+
 def register(request):
     if request.method != 'POST':
         return render_to_response('register.html')
@@ -122,8 +129,9 @@ def register(request):
                         {'msg': 'Already registered'})
 
     msg = "Thanks for registering.  Hopefully you'll never get an e-mail from us!"
-    return render_to_response('home.html', {'msg' : msg})
+    return render_to_response('home.html', {'msg': msg})
+
 
 def users(request):
     usrs = TwitterUser.objects.all()
-    return render_to_response('users.html', {'users' : usrs})
+    return render_to_response('users.html', {'users': usrs})
