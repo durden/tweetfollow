@@ -3,8 +3,8 @@
 from django.shortcuts import render_to_response
 from django.core.mail import EmailMessage
 
-from models import TwitterUser, Followers
-from forms import UserForm
+from tweetapp.models import TwitterUser, Followers
+from tweetapp.forms import UserForm
 
 import twitter
 

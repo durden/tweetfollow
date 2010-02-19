@@ -18,6 +18,7 @@ from tweetapp import views
 
 TEST_EMAIL = 'test@test.com'
 
+
 class RequestTests(TestCase):
     """Class of tests for tweetapp request handlers"""
 
