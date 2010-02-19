@@ -1,3 +1,5 @@
+"""Views for tweetapp"""
+
 from django.shortcuts import render_to_response
 from models import TwitterUser, Followers
 from django.core.mail import EmailMessage
@@ -10,10 +12,12 @@ PASS = 'glowworm'
 
 
 class AlreadyRegistered(Exception):
+    """User already registered with local DB"""
     pass
 
 
 class InvalidTwitterCred(Exception):
+    """Twitter credentials are incorrect (user/pass)"""
     pass
 
 
@@ -78,7 +82,14 @@ def __get_twitteruser__(user, email):
     return twitter_user
 
 
-def __get_all_followers__(api, user):
+def __get_all_followers__(user):
+    """Get all the followers for twitter user
+        - Raises InvalidTwitterCred if unable to login to query twitter
+    """
+
+    # Get api object for query (raises exception if validation fails)
+    api = __get_api__(USER, PASS)
+
     ii = -1
     followers = set()
 
@@ -95,18 +106,18 @@ def __get_all_followers__(api, user):
 
 
 def __update_followers__(user):
+    """Update the followers for twitter user
+        - Raises InvalidTwitterCred if unable to login to query twitter
+    """
+
+    # Get current followers (rasies exception if validation fails)
+    curr = __get_all_followers__(user)
+
     prev = set()
     db_usr = TwitterUser.objects.filter(username=user)[0]
 
     for usr in Followers.objects.filter(user=user):
         prev.add(usr.follower)
-
-    try:
-        api = __get_api__(USER, PASS)
-    except InvalidTwitterCred:
-        return (None, None)
-
-    curr = __get_all_followers__(api, user)
 
     added = curr - prev
     removed = prev - curr
@@ -118,13 +129,18 @@ def __update_followers__(user):
     for usr in added:
         tmp = Followers(user=db_usr, follower=usr)
         tmp.save()
-        print usr
 
     return (added, removed)
 
 
 def update_followers(request, user):
-    added, removed = __update_followers__(user)
+    """Handle request for updating followers for given user"""
+
+    try:
+        added, removed = __update_followers__(user)
+    except InvalidTwitterCred:
+        return render_to_response('register.html',
+                        {'msg': 'Unable to find Twitter User (%s)' % (user)})
 
     if removed:
         db_usr = TwitterUser.objects.filter(username=user)[0]
