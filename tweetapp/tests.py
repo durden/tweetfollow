@@ -55,6 +55,28 @@ class RequestTests(TestCase):
         self.failUnlessEqual(users[0].email, email)
         self.failUnlessEqual(users[0].username, name)
 
+    def test_register_req_missing_user(self):
+        """Register fails with no user specified"""
+        response = self.client.post('/register/', {'email': 'email'})
+
+        # Check that the response is 200 OK.
+        self.failUnlessEqual(response.status_code, 200)
+
+        # Should go to register with failure msg
+        self.assertTemplateUsed(response, 'register.html')
+        self.assertContains(response, 'Must enter username/e-mail')
+
+    def test_register_req_missing_email(self):
+        """Register fails with no user specified"""
+        response = self.client.post('/register/', {'user': 'user'})
+
+        # Check that the response is 200 OK.
+        self.failUnlessEqual(response.status_code, 200)
+
+        # Should go to register with failure msg
+        self.assertTemplateUsed(response, 'register.html')
+        self.assertContains(response, 'Must enter username/e-mail')
+
     def test_users_req(self):
         """Verify users request shows all registered users"""
         response = self.client.get('/users/')
