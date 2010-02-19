@@ -1,38 +1,81 @@
 from django.shortcuts import render_to_response
 from models import TwitterUser, Followers
-from django.http import HttpResponseRedirect
 from django.core.mail import EmailMessage
 
-import datetime
 import twitter
+
+# 'Fake' account to use for all queries
+USER = 'glow__worm'
+PASS = 'glowworm'
 
 
 class AlreadyRegistered(Exception):
     pass
 
 
+class InvalidTwitterCred(Exception):
+    pass
+
+
 def __get_api__(user, pwd):
-    # Verify it is the correct twitter password
+    """Attempt to create an api object for given twitter credentials
+        - Raises InvalidTwitterCred if invalid user/pass combo
+    """
     api = twitter.Twitter(user, pwd)
 
+    # Verify correct twitter password
     try:
         api.statuses.friends_timeline()
     except twitter.api.TwitterError:
-        return None
+        raise InvalidTwitterCred()
+
+    # Note: Current version of twitter module has bug that will raise
+    #       NameError when authentication is wrong
+    except:
+        raise InvalidTwitterCred()
 
     return api
 
 
+def __lookup_twitter_user__(user):
+    """Look up user from twitter and return dictionary of user
+        - See twitter api users/show for info. on return info
+
+        - Raises InvalidTwitterCred if user doesn't exist
+    """
+
+    api = __get_api__(USER, PASS)
+
+    try:
+        user = api.users.show(screen_name=user)
+
+    # Note: Current version of twitter module has bug that will raise
+    #       NameError when authentication is wrong
+    except:
+        raise InvalidTwitterCred()
+
+    return user
+
+
 def __get_twitteruser__(user, email):
+    """Find/create local TwitterUser DB object
+        - Raises InvalidTwitterCred if user doesn't exist on twitter's side
+
+        - Raises AlreadyRegistered if user already registered in local DB
+    """
+
     if TwitterUser.objects.filter(username=user):
         raise AlreadyRegistered()
 
-    twitteruser = TwitterUser(username=user, email=email)
+    # Raises exception is user doesn't exist
+    twitter_user = __lookup_twitter_user__(user)
+
+    local_user = TwitterUser(username=user, email=email)
 
     # FIXME: Exception to catch?
-    twitteruser.save()
+    local_user.save()
 
-    return twitteruser
+    return twitter_user
 
 
 def __get_all_followers__(api, user):
@@ -58,7 +101,12 @@ def __update_followers__(user):
     for usr in Followers.objects.filter(user=user):
         prev.add(usr.follower)
 
-    curr = __get_all_followers__(__get_api__('glow__worm', 'glowworm'), user)
+    try:
+        api = __get_api__(USER, PASS)
+    except InvalidTwitterCred:
+        return (None, None)
+
+    curr = __get_all_followers__(api, user)
 
     added = curr - prev
     removed = prev - curr
@@ -119,16 +167,17 @@ def register(request):
         return render_to_response('register.html',
                         {'msg': 'Must enter username/e-mail'})
 
-    # FIXME: Validate the email is the one associated with the twitter user
-    # FIXME: Verify twitter user exists
-
     try:
-        usr = __get_twitteruser__(user, email)
+        __get_twitteruser__(user, email)
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
+    except InvalidTwitterCred:
+        return render_to_response('register.html',
+                        {'msg': 'Unable to find Twitter User (%s)' % (user)})
 
-    msg = "Thanks for registering.  Hopefully you'll never get an e-mail from us!"
+    msg = "Thanks for registering.  Hopefully you'll never get " +\
+          "an e-mail from us!"
     return render_to_response('home.html', {'msg': msg})
 
 
