@@ -2,15 +2,17 @@
 
 import unittest
 from django.test.client import Client
-from models import TwitterUser
+from tweetapp.models import TwitterUser
+
+
+def add_user(username, email):
+    """Add a user to local DB"""
+    user = TwitterUser(username=username, email=email)
+    user.save()
+
 
 class TweetappTests(unittest.TestCase):
     """Class of tests for tweetapp"""
-
-    def __add_user(self, username, email):
-        """Add a user to local DB"""
-        user = TwitterUser(username=username, email=email)
-        user.save()
 
     def setUp(self):
         """Create django test client for all tests"""
@@ -57,7 +59,7 @@ class TweetappTests(unittest.TestCase):
         self.failUnlessEqual(len(response.context[0]['users']), 0)
 
         # Add users and verify there is one
-        self.__add_user('testuser', 'fake_email')
+        add_user('testuser', 'fake_email')
 
         response = self.client.get('/users/')
         self.failUnlessEqual(response.status_code, 200)
