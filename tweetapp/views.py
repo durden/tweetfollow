@@ -1,8 +1,10 @@
 """Views for tweetapp"""
 
 from django.shortcuts import render_to_response
-from models import TwitterUser, Followers
 from django.core.mail import EmailMessage
+
+from models import TwitterUser, Followers
+from forms import UserForm
 
 import twitter
 
@@ -180,21 +182,25 @@ def register(request):
     if request.method != 'POST':
         return render_to_response('register.html')
 
-    user = request.POST.get('user', '')
-    email = request.POST.get('email', '')
+    # Use form for e-mail validation
+    form = UserForm(request.POST)
 
-    if user == '' or email == '':
+    if not form.is_valid():
         return render_to_response('register.html',
                         {'msg': 'Must enter username/e-mail'})
 
+    name = form.cleaned_data['username']
+    email = form.cleaned_data['email']
+
+    # Verify twitter thinks user exists and create/get local user
     try:
-        _get_local_user(user, email)
+        _get_local_user(name, email)
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
     except InvalidTwitterCred:
         return render_to_response('register.html',
-                        {'msg': 'Unable to find Twitter User (%s)' % (user)})
+                        {'msg': 'Unable to find Twitter User (%s)' % (name)})
 
     msg = "Thanks for registering.  Hopefully you'll never get " +\
           "an e-mail from us!"
