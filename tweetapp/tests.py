@@ -1,6 +1,6 @@
 """Tests for tweetapp application"""
 
-import unittest
+from django.test import TestCase
 from django.test.client import Client
 from tweetapp.models import TwitterUser
 
@@ -11,7 +11,7 @@ def add_user(username, email):
     user.save()
 
 
-class TweetappTests(unittest.TestCase):
+class TweetappTests(TestCase):
     """Class of tests for tweetapp"""
 
     def setUp(self):
@@ -37,7 +37,7 @@ class TweetappTests(unittest.TestCase):
         self.failUnlessEqual(response.status_code, 200)
 
         # Should go to home
-        self.failUnlessEqual(response.template[0].name, 'home.html')
+        self.assertTemplateUsed(response, 'home.html')
 
         # Verify user in local DB
         users = TwitterUser.objects.all()
@@ -57,6 +57,7 @@ class TweetappTests(unittest.TestCase):
 
         # No users yet
         self.failUnlessEqual(len(response.context[0]['users']), 0)
+        self.assertTemplateUsed(response, 'users.html')
 
         # Add users and verify there is one
         add_user('testuser', 'fake_email')
@@ -64,3 +65,4 @@ class TweetappTests(unittest.TestCase):
         response = self.client.get('/users/')
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(len(response.context[0]['users']), 1)
+        self.assertTemplateUsed(response, 'users.html')
