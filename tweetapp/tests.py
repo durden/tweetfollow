@@ -105,3 +105,26 @@ class ViewHelperTests(TestCase):
 
         self.failUnlessRaises(views.InvalidTwitterCred,
                                 views._lookup_twitter_user, 'bad123321')
+
+    def test_local_user_add(self):
+        """Add local user when not found"""
+
+        # Check returned object
+        ret_user = views._get_local_user(views.USER, 'email')
+        self.failUnlessEqual(ret_user.username, views.USER)
+        self.failUnlessEqual(ret_user.email, 'email')
+
+        # Check DB
+        db_user = TwitterUser.objects.all()[0]
+        self.failUnlessEqual(db_user.username, ret_user.username)
+        self.failUnlessEqual(db_user.email, ret_user.email)
+
+    def test_local_user_add_invalid_twitter_user(self):
+        """Unable to create local user with invalid twitter cred."""
+
+        # Check returned object
+        self.failUnlessRaises(views.InvalidTwitterCred,
+                                views._get_local_user, 'bad123321', 'email')
+
+        # Check DB didn't add user
+        self.failUnlessEqual(len(TwitterUser.objects.all()), 0)
