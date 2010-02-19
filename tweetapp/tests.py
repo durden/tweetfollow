@@ -1,9 +1,19 @@
-"""Tests for tweetapp application"""
+"""Tests for tweetapp application
+
+    The following code tests the majority of the tweetapp request handlers and
+    internal helper functions.
+
+    I haven't figured out a good way to test the update* urls yet because
+    they depend heavily on the twitter api and constantly changing twitter
+    followers, etc.  I can probably mock the twitter api somehow, but no good
+    solution yet.
+"""
 
 from django.test import TestCase
 from django.test.client import Client
-from tweetapp.models import TwitterUser
 
+from tweetapp.models import TwitterUser
+from tweetapp import views
 
 def add_user(username, email):
     """Add a user to local DB"""
@@ -11,8 +21,8 @@ def add_user(username, email):
     user.save()
 
 
-class TweetappTests(TestCase):
-    """Class of tests for tweetapp"""
+class RequestTests(TestCase):
+    """Class of tests for tweetapp request handlers"""
 
     def setUp(self):
         """Create django test client for all tests"""
@@ -66,3 +76,32 @@ class TweetappTests(TestCase):
         self.failUnlessEqual(response.status_code, 200)
         self.failUnlessEqual(len(response.context[0]['users']), 1)
         self.assertTemplateUsed(response, 'users.html')
+
+
+class ViewHelperTests(TestCase):
+    """Class of tests for tweetapp views.py helper functions"""
+
+    def test_get_api_success(self):
+        """Successfully returns api reference with valid twitter cred."""
+
+        api = views._get_api(views.USER, views.PASS)
+        self.failIfEqual(api, None)
+
+    def test_get_api_invalid_cred(self):
+        """Unable to get api reference with invalid twitter cred."""
+
+        self.failUnlessRaises(views.InvalidTwitterCred, views._get_api,
+                                'bad123321', 'badpass')
+
+    def test_lookup_twitter_user_success(self):
+        """Successfully lookup twitter user"""
+
+        user = views._lookup_twitter_user(views.USER)
+        self.failIfEqual(user, None)
+        self.failUnlessEqual(user['screen_name'], views.USER)
+
+    def test_lookup_twitter_user_invalid_user(self):
+        """Unable to find twitter user"""
+
+        self.failUnlessRaises(views.InvalidTwitterCred,
+                                views._lookup_twitter_user, 'bad123321')
