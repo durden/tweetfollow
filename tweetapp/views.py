@@ -61,7 +61,7 @@ def _lookup_twitter_user(user):
     return user
 
 
-def _get_twitter_user(user, email):
+def _get_local_user(user, email):
     """Find/create local TwitterUser DB object
         - Raises InvalidTwitterCred if user doesn't exist on twitter's side
 
@@ -188,7 +188,7 @@ def register(request):
                         {'msg': 'Must enter username/e-mail'})
 
     try:
-        _get_twitter_user(user, email)
+        _get_local_user(user, email)
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
