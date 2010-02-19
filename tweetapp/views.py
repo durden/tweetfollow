@@ -187,7 +187,7 @@ def register(request):
 
     if not form.is_valid():
         return render_to_response('register.html',
-                        {'msg': 'Must enter username/e-mail'})
+                        {'msg': 'Must enter valid e-mail'})
 
     name = form.cleaned_data['username']
     email = form.cleaned_data['email']
