@@ -79,7 +79,7 @@ def _get_local_user(user, email):
     # FIXME: Exception to catch?
     local_user.save()
 
-    return twitter_user
+    return local_user
 
 
 def _get_all_followers(user):
