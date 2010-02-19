@@ -15,11 +15,6 @@ from django.test.client import Client
 from tweetapp.models import TwitterUser
 from tweetapp import views
 
-def add_user(username, email):
-    """Add a user to local DB"""
-    user = TwitterUser(username=username, email=email)
-    user.save()
-
 
 class RequestTests(TestCase):
     """Class of tests for tweetapp request handlers"""
@@ -92,7 +87,8 @@ class RequestTests(TestCase):
         self.assertTemplateUsed(response, 'users.html')
 
         # Add users and verify there is one
-        add_user('testuser', 'fake_email')
+        user = TwitterUser(username='testuser', email='email')
+        user.save()
 
         response = self.client.get('/users/')
         self.failUnlessEqual(response.status_code, 200)
