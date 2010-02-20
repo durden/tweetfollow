@@ -124,7 +124,7 @@ def _update_followers(user):
     try:
         db_usr = TwitterUser.objects.filter(username=user)[0]
     except IndexError:
-       raise MissingLocalUser()
+        raise MissingLocalUser()
 
     # Get current followers (rasies exception if validation fails)
     curr = _get_all_followers(user)
@@ -148,6 +148,24 @@ def _update_followers(user):
     return (added, removed)
 
 
+def _send_email(lost, user):
+    """Generate and send e-mail for lost followers"""
+
+    if lost and len(lost):
+        body = "<p>The following users recently un-followed you:</p><ul>"
+
+        for usr in lost:
+            body += '<li><a href="http://www.twitter.com/%s">%s</a></li>' % (usr, usr)
+
+        body += "</ul>"
+
+        msg = EmailMessage("TweetFollow: Lost %d followers" % (len(lost)),
+                        body, 'follow@tweetfollow.durden.webfactional.com',
+                        [user.email])
+        msg.content_subtype = 'html'
+        msg.send()
+
+
 def update_followers(request, user):
     """Handle request for updating followers for given user"""
 
@@ -160,20 +178,9 @@ def update_followers(request, user):
         return render_to_response('register.html',
                         {'msg': 'Please register user (%s) first' % (user)})
 
-    if removed:
-        db_usr = TwitterUser.objects.filter(username=user)[0]
-        if db_usr.email != "" and len(removed):
-            body = "<p>The following users recently un-followed you:</p><ul>"
-            for usr in removed:
-                body += '<li><a href="http://www.twitter.com/%s">%s</a></li>' % (usr, usr)
-
-            body += "</ul>"
-
-            msg = EmailMessage("TweetFollow: Lost %d followers" % (len(removed)),
-                            body, 'follow@tweetfollow.durden.webfactional.com',
-                            [db_usr.email])
-            msg.content_subtype = 'html'
-            msg.send()
+    # Send e-mail to local user
+    db_user = TwitterUser.objects.filter(username=user)[0]
+    _send_email(removed, db_user)
 
     return render_to_response('followers.html', {'user': user,
                                         'added': added, 'removed': removed})
