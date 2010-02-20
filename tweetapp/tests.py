@@ -19,6 +19,13 @@ from tweetapp import views
 TEST_EMAIL = 'test@test.com'
 
 
+def _add_local_user(username, email):
+    """Helper to add a local user"""
+
+    user = TwitterUser(username=username, email=email)
+    user.save()
+    return user
+
 class RequestTests(TestCase):
     """Class of tests for tweetapp request handlers"""
 
@@ -61,10 +68,10 @@ class RequestTests(TestCase):
 
         # Should go to register with failure msg
         self.assertTemplateUsed(response, 'register.html')
-        self.assertContains(response, 'Must enter username/e-mail')
+        self.assertContains(response, 'Must enter valid username/e-mail')
 
     def test_register_req_missing_email_arg(self):
-        """Register fails with no user specified"""
+        """Register fails with no email specified"""
         response = self.client.post('/register/', {'username': 'user'})
 
         # Check that the response is 200 OK.
@@ -72,7 +79,7 @@ class RequestTests(TestCase):
 
         # Should go to register with failure msg
         self.assertTemplateUsed(response, 'register.html')
-        self.assertContains(response, 'Must enter username/e-mail')
+        self.assertContains(response, 'Must enter valid username/e-mail')
 
     def test_register_req_invalid_twitter_user(self):
         """Register fails if user doesn't exist on twitter"""
@@ -89,8 +96,7 @@ class RequestTests(TestCase):
         """Register fails is user already registered"""
 
         # Add user
-        user = TwitterUser(username=views.USER, email=TEST_EMAIL)
-        user.save()
+        user = _add_local_user(views.USER, email=TEST_EMAIL)
 
         # Register again
         response = self.client.post('/register/', {'username': user.username,
@@ -106,7 +112,7 @@ class RequestTests(TestCase):
                                                     'email': 'invalidemail'})
 
         self.assertTemplateUsed(response, 'register.html')
-        self.assertContains(response, 'Must enter valid e-mail')
+        self.assertContains(response, 'Must enter valid username/e-mail')
 
     def test_users_req(self):
         """Verify users request shows all registered users"""
@@ -123,8 +129,7 @@ class RequestTests(TestCase):
         self.assertTemplateUsed(response, 'users.html')
 
         # Add users and verify there is one
-        user = TwitterUser(username='testuser', email=TEST_EMAIL)
-        user.save()
+        user = _add_local_user('testuser', email=TEST_EMAIL)
 
         response = self.client.get('/users/')
         self.failUnlessEqual(response.status_code, 200)
