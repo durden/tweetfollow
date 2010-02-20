@@ -24,6 +24,7 @@ urlpatterns = patterns('',
     (r'^refresh/(.*)', update_followers),
     (r'^update/(.*)', update_followers),
     (r'^update_all/$', update_all),
+    (r'^success/$', direct_to_template, {'template': 'success.html'}),
 )
 
 if settings.DEBUG:

@@ -46,12 +46,8 @@ class RequestTests(TestCase):
 
         response = self.client.post('/register/', {'username': name,
                                                     'email': TEST_EMAIL})
-
-        # Check that the response is 200 OK.
-        self.failUnlessEqual(response.status_code, 200)
-
-        # Should go to home
-        self.assertTemplateUsed(response, 'home.html')
+        # Should go to success
+        self.assertRedirects(response, '/success/')
 
         # Verify user in local DB
         users = TwitterUser.objects.all()
@@ -145,6 +141,10 @@ class RequestTests(TestCase):
         self.assertContains(response,
                             'Please register user (%s) first' % (user))
 
+    def test_success_req(self):
+        """Success request renders success template"""
+        response = self.client.get('/success/')
+        self.assertTemplateUsed(response, 'success.html')
 
 class ViewHelperTests(TestCase):
     """Class of tests for tweetapp views.py helper functions"""

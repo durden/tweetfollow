@@ -1,5 +1,6 @@
 """Views for tweetapp"""
 
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.core.mail import EmailMessage
 
@@ -187,10 +188,6 @@ def update_all(request):
     return render_to_response('register.html')
 
 
-# FIXME: Change all requests that use POST data to return HttpResponseRedirect
-#        (http://docs.djangoproject.com/en/dev/intro/tutorial04/)
-
-
 def register(request):
     """Handle request for registering new user"""
 
@@ -217,9 +214,7 @@ def register(request):
         return render_to_response('register.html',
                         {'msg': 'Unable to find Twitter User (%s)' % (name)})
 
-    msg = "Thanks for registering.  Hopefully you'll never get " +\
-          "an e-mail from us!"
-    return render_to_response('home.html', {'msg': msg})
+    return HttpResponseRedirect('/success/')
 
 
 def users(request):
