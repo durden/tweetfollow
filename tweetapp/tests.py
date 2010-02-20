@@ -146,6 +146,11 @@ class RequestTests(TestCase):
         response = self.client.get('/success/')
         self.assertTemplateUsed(response, 'success.html')
 
+    def test_about_req(self):
+        """About request renders about template"""
+        response = self.client.get('/about/')
+        self.assertTemplateUsed(response, 'about.html')
+
 class ViewHelperTests(TestCase):
     """Class of tests for tweetapp views.py helper functions"""
 
