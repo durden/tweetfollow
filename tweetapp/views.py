@@ -9,10 +9,6 @@ from tweetapp.forms import UserForm
 
 import twitter
 
-# 'Fake' account to use for all queries
-USER = 'glow__worm'
-PASS = 'glowworm'
-
 
 class AlreadyRegistered(Exception):
     """User already registered with local DB"""
@@ -29,60 +25,45 @@ class MissingLocalUser(Exception):
     pass
 
 
-def _get_api(user, pwd):
-    """Attempt to create an api object for given twitter credentials
-        - Raises InvalidTwitterCred if invalid user/pass combo
+def _get_api():
+    """Create api instance to use
+        - Method only exists to hopefully try to hide what twitter library is
+          being used
     """
-    api = twitter.Twitter(user, pwd)
-
-    # Verify correct twitter password
-    try:
-        api.statuses.friends_timeline()
-    except twitter.api.TwitterError:
-        raise InvalidTwitterCred()
-
-    # Note: Current version of twitter module has bug that will raise
-    #       NameError when authentication is wrong
-    except:
-        raise InvalidTwitterCred()
-
-    return api
+    return twitter.Twitter()
 
 
 def _lookup_twitter_user(user):
-    """Look up user from twitter and return dictionary of user
-        - See twitter api users/show for info. on return info
-
+    """Look up user from twitter
         - Raises InvalidTwitterCred if user doesn't exist
+        - No return value
     """
 
-    api = _get_api(USER, PASS)
+    api = _get_api()
 
+    # Try to see the user's followers, assume any problem means
+    # the user doesn't exist b/c we are cheating and not going to
+    # bother with users that are set to private, etc.
     try:
-        user = api.users.show(screen_name=user)
-
-    # Note: Current version of twitter module has bug that will raise
-    #       NameError when authentication is wrong
+        user = api.statuses.followers(screen_name=user)
     except:
         raise InvalidTwitterCred()
 
-    return user
 
-
-def _get_local_user(user, email):
+def _create_local_user(username, email):
     """Find/create local TwitterUser DB object
         - Raises InvalidTwitterCred if user doesn't exist on twitter's side
 
         - Raises AlreadyRegistered if user already registered in local DB
     """
 
-    if TwitterUser.objects.filter(username=user):
+    if TwitterUser.objects.filter(username=username):
         raise AlreadyRegistered()
 
     # Raises exception is user doesn't exist
-    twitter_user = _lookup_twitter_user(user)
+    _lookup_twitter_user(username)
 
-    local_user = TwitterUser(username=user, email=email)
+    local_user = TwitterUser(username=username, email=email)
 
     # FIXME: Exception to catch?
     local_user.save()
@@ -90,19 +71,19 @@ def _get_local_user(user, email):
     return local_user
 
 
-def _get_all_followers(user):
-    """Get all the followers for twitter user
+def _get_current_followers(username):
+    """Get all the current followers for twitter user from twitter api
         - Raises InvalidTwitterCred if unable to login to query twitter
     """
 
     # Get api object for query (raises exception if validation fails)
-    api = _get_api(USER, PASS)
+    api = _get_api()
 
     ii = -1
     followers = set()
 
     while True:
-        cur = api.statuses.followers(screen_name=user, cursor=ii)
+        cur = api.statuses.followers(screen_name=username, cursor=ii)
         if not len(cur['users']):
             break
 
@@ -110,10 +91,24 @@ def _get_all_followers(user):
             followers.add(follower['screen_name'])
 
         ii = cur['next_cursor']
+
     return followers
 
 
-def _update_followers(user):
+def _get_previous_followers(user):
+    """Get all the previous followers for twitter user from from local DB
+        - Argument is of type local model -- TwitterUser
+    """
+
+    followers = set()
+
+    for usr in Followers.objects.filter(user=user):
+        followers.add(usr.follower)
+
+    return followers
+
+
+def _update_followers(username):
     """Update the followers for twitter user
         - Raises InvalidTwitterCred if unable to login to query twitter
 
@@ -122,17 +117,15 @@ def _update_followers(user):
 
     # Verify user exists locally
     try:
-        db_usr = TwitterUser.objects.filter(username=user)[0]
+        db_user = TwitterUser.objects.filter(username=username)[0]
     except IndexError:
         raise MissingLocalUser()
 
-    # Get current followers (rasies exception if validation fails)
-    curr = _get_all_followers(user)
+    # Current followers (rasies exception if twitter doesn't find user)
+    curr = _get_current_followers(username)
 
-    prev = set()
-
-    for usr in Followers.objects.filter(user=user):
-        prev.add(usr.follower)
+    # Current followers (rasies exception if user doesn't exist locally)
+    prev = _get_previous_followers(db_user)
 
     added = curr - prev
     removed = prev - curr
@@ -142,7 +135,7 @@ def _update_followers(user):
         tmp.delete()
 
     for usr in added:
-        tmp = Followers(user=db_usr, follower=usr)
+        tmp = Followers(user=db_user, follower=usr)
         tmp.save()
 
     return (added, removed)
@@ -166,23 +159,23 @@ def _send_email(lost, user):
         msg.send()
 
 
-def update_followers(request, user):
+def update_followers(request, username):
     """Handle request for updating followers for given user"""
 
     try:
-        added, removed = _update_followers(user)
+        added, removed = _update_followers(username)
     except InvalidTwitterCred:
         return render_to_response('register.html',
-                        {'msg': 'Unable to find Twitter User (%s)' % (user)})
+                    {'msg': 'Unable to find Twitter User (%s)' % (username)})
     except MissingLocalUser:
         return render_to_response('register.html',
-                        {'msg': 'Please register user (%s) first' % (user)})
+                    {'msg': 'Please register user (%s) first' % (username)})
 
     # Send e-mail to local user
-    db_user = TwitterUser.objects.filter(username=user)[0]
+    db_user = TwitterUser.objects.filter(username=username)[0]
     _send_email(removed, db_user)
 
-    return render_to_response('followers.html', {'user': user,
+    return render_to_response('followers.html', {'user': username,
                                         'added': added, 'removed': removed})
 
 
@@ -213,7 +206,7 @@ def register(request):
 
     # Verify twitter thinks user exists and create/get local user
     try:
-        _get_local_user(name, email)
+        _create_local_user(name, email)
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
