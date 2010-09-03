@@ -36,6 +36,21 @@ from google.appengine.ext.webapp import util
 
 # Import the part of Django that we use here.
 import django.core.handlers.wsgi
+import django.core.signals
+import django.db
+import django.dispatch.dispatcher
+
+def log_exception(*args, **kwds):
+    logging.exception('Exception in request:')
+
+# Log errors.
+django.dispatch.Signal.connect(
+    django.core.signals.got_request_exception, log_exception)
+
+# Unregister the rollback event handler.
+django.dispatch.Signal.disconnect(
+    django.core.signals.got_request_exception,
+    django.db._rollback_on_exception)
 
 def main():
   # Ensure the Django zipfile is in the path if required.
