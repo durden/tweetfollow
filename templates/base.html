@@ -1,0 +1,22 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+  <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="/media/css/main.css" media="screen">
+    <title>Tweetfollow</title>
+  </head>
+  <body>
+    <div id="header"><img src="/media/imgs/header.jpg" width="944" height="180"/></div>
+    <div id="main">
+        <h1>{% block header %} {% endblock %}</h1>
+        <ul id="nav">
+                <li><a href="/about/">About</a></li>
+                <li><a href="/register/">Register</a></li>
+                <!--<li><a href="/users/">Tweetfollow Users</a></li>-->
+        </ul>
+        <div id="content">{% block content %} {% endblock %}</div>
+        <div id="footer">&copy; 2009 Tweetfollow</div>
+    </div>
+  </body>
+</html>

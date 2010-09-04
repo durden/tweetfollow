@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %} Current {{ user }} followers {% endblock %}
+
+{% block content %}
+  <p>Removed ({{removed|length}})</p>
+  <ul>
+    {% for name in removed %}
+      <li><a href="http://www.twitter.com/{{name}}">{{name}}</a></li> 
+    {% endfor %}
+  </ul>
+
+  <p>Added ({{added|length}})</p>
+  <ul>
+    {% for name in added %}
+      <li><a href="http://www.twitter.com/{{name}}">{{name}}</a></li> 
+    {% endfor %}
+  </ul>
+{% endblock %}
+

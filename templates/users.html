@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %} Registered Users {% endblock %}
+
+{% block content %}
+  <ul>
+    {% for user in users %}
+      <li><a href="http://www.twitter.com/{{user.username}}">{{user.username}}</a></li> 
+    {% endfor %}
+  </ul>
+{% endblock %}
