@@ -12,6 +12,8 @@
 from django.test import TestCase
 from django.test.client import Client
 
+from google.appengine.ext import db
+
 from tweetapp.models import TwitterUser
 from tweetapp import views
 
@@ -24,9 +26,11 @@ def _add_local_user(username, email):
     """Helper to add a local user"""
 
     user = TwitterUser(username=username, email=email)
-    user.save()
+    db.put(user)
     return user
 
+
+>>>>>>> appengineremote/master:tweetapp/tests.py
 class RequestTests(TestCase):
     """Class of tests for tweetapp request handlers"""
 
@@ -37,8 +41,8 @@ class RequestTests(TestCase):
     def tearDown(self):
         """Remove any local DB users created in testing"""
 
-        for user in TwitterUser.objects.all():
-            user.delete()
+        for user in TwitterUser.all():
+            db.delete(user)
 
     def test_register_req_success(self):
         """Successful register attempt"""
@@ -51,8 +55,8 @@ class RequestTests(TestCase):
         self.assertRedirects(response, '/success/')
 
         # Verify user in local DB
-        users = TwitterUser.objects.all()
-        self.failUnlessEqual(len(users), 1)
+        users = TwitterUser.all()
+        self.failUnlessEqual(users.count(), 1)
         self.failUnlessEqual(users[0].email, TEST_EMAIL)
         self.failUnlessEqual(users[0].username, name)
 
@@ -122,15 +126,15 @@ class RequestTests(TestCase):
         #       a list for each one, and we want to check the first one
 
         # No users yet
-        self.failUnlessEqual(len(response.context[0]['users']), 0)
+        self.failUnlessEqual(response.context[0]['users'].count(), 0)
         self.assertTemplateUsed(response, 'users.html')
 
         # Add users and verify there is one
-        user = _add_local_user('testuser', email=TEST_EMAIL)
+        _add_local_user('testuser', email=TEST_EMAIL)
 
         response = self.client.get('/users/')
         self.failUnlessEqual(response.status_code, 200)
-        self.failUnlessEqual(len(response.context[0]['users']), 1)
+        self.failUnlessEqual(response.context[0]['users'].count(), 1)
         self.assertTemplateUsed(response, 'users.html')
 
     def test_update_req_not_registered(self):
@@ -152,6 +156,7 @@ class RequestTests(TestCase):
         response = self.client.get('/about/')
         self.assertTemplateUsed(response, 'about.html')
 
+
 class ViewHelperTests(TestCase):
     """Class of tests for tweetapp views.py helper functions"""
 
@@ -164,7 +169,7 @@ class ViewHelperTests(TestCase):
     def test_lookup_twitter_user_success(self):
         """Successfully lookup twitter user"""
 
-        # Should raise invalidtwittercred if doesn't exist
+        # Would raise invalidtwittercred exception if doesn't exist
         views._lookup_twitter_user(TEST_USER)
 
     def test_lookup_twitter_user_invalid_user(self):
@@ -182,7 +187,7 @@ class ViewHelperTests(TestCase):
         self.failUnlessEqual(ret_user.email, TEST_EMAIL)
 
         # Check DB
-        db_user = TwitterUser.objects.all()[0]
+        db_user = TwitterUser.all()[0]
         self.failUnlessEqual(db_user.username, ret_user.username)
         self.failUnlessEqual(db_user.email, ret_user.email)
 
@@ -195,4 +200,4 @@ class ViewHelperTests(TestCase):
                                 TEST_EMAIL)
 
         # Check DB didn't add user
-        self.failUnlessEqual(len(TwitterUser.objects.all()), 0)
+        self.failUnlessEqual(TwitterUser.all().count(), 0)

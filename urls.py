@@ -1,7 +1,7 @@
 from django.views.generic.simple import direct_to_template
 from django.conf.urls.defaults import *
-from tweetfollow.tweetapp.views import *
-from django.conf import settings
+
+from tweetapp.views import *
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -26,8 +26,3 @@ urlpatterns = patterns('',
     (r'^update_all/$', update_all),
     (r'^success/$', direct_to_template, {'template': 'success.html'}),
 )
-
-if settings.DEBUG:
-    urlpatterns += patterns('',
-        (r'^tmedia/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': settings.STATIC_MEDIA_URL, 'show_indexes' : True}),)

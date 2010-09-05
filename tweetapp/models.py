@@ -1,9 +1,10 @@
-from django.db import models
+from appengine_django.models import BaseModel
+from google.appengine.ext import db
 
-class TwitterUser(models.Model):
-    username = models.CharField(max_length=50)
-    email = models.EmailField()
+class TwitterUser(BaseModel):
+    username = db.StringProperty(required=True)
+    email = db.EmailProperty(required=True)
 
-class Followers(models.Model):
-    user        = models.ForeignKey(TwitterUser, to_field='username')
-    follower    = models.CharField(max_length=50)
+class Followers(BaseModel):
+    user        = db.ReferenceProperty(TwitterUser)
+    follower    = db.StringProperty(required=True)

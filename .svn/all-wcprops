@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 23
+/svn/!svn/ver/106/trunk
+END
+manage.py
+K 25
+svn:wc:ra_dav:version-url
+V 32
+/svn/!svn/ver/92/trunk/manage.py
+END
+app.yaml
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/2/trunk/app.yaml
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/svn/!svn/ver/2/trunk/__init__.py
+END
+settings.py
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/svn/!svn/ver/84/trunk/settings.py
+END
+KNOWN_ISSUES
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/svn/!svn/ver/69/trunk/KNOWN_ISSUES
+END
+CHANGES
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/87/trunk/CHANGES
+END
+COPYING
+K 25
+svn:wc:ra_dav:version-url
+V 29
+/svn/!svn/ver/2/trunk/COPYING
+END
+main.py
+K 25
+svn:wc:ra_dav:version-url
+V 30
+/svn/!svn/ver/92/trunk/main.py
+END
+urls.py
+K 25
+svn:wc:ra_dav:version-url
+V 29
+/svn/!svn/ver/2/trunk/urls.py
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 29
+/svn/!svn/ver/82/trunk/README
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 31
+/svn/!svn/ver/11/trunk/Makefile
+END
