@@ -12,10 +12,13 @@
 from django.test import TestCase
 from django.test.client import Client
 
+from google.appengine.ext import db
+
 from tweetapp.models import TwitterUser
 from tweetapp import views
 
 
+TEST_USER = 'durden20'
 TEST_EMAIL = 'test@test.com'
 
 
@@ -23,7 +26,7 @@ def _add_local_user(username, email):
     """Helper to add a local user"""
 
     user = TwitterUser(username=username, email=email)
-    user.save()
+    db.put(user)
     return user
 
 class RequestTests(TestCase):
@@ -36,8 +39,8 @@ class RequestTests(TestCase):
     def tearDown(self):
         """Remove any local DB users created in testing"""
 
-        for user in TwitterUser.objects.all():
-            user.delete()
+        for user in TwitterUser.all():
+            db.delete(user)
 
     def test_register_req_success(self):
         """Successful register attempt"""
@@ -50,8 +53,8 @@ class RequestTests(TestCase):
         self.assertRedirects(response, '/success/')
 
         # Verify user in local DB
-        users = TwitterUser.objects.all()
-        self.failUnlessEqual(len(users), 1)
+        users = TwitterUser.all()
+        self.failUnlessEqual(users.count(), 1)
         self.failUnlessEqual(users[0].email, TEST_EMAIL)
         self.failUnlessEqual(users[0].username, name)
 
@@ -92,7 +95,7 @@ class RequestTests(TestCase):
         """Register fails is user already registered"""
 
         # Add user
-        user = _add_local_user(views.USER, email=TEST_EMAIL)
+        user = _add_local_user(TEST_USER, email=TEST_EMAIL)
 
         # Register again
         response = self.client.post('/register/', {'username': user.username,
@@ -104,7 +107,7 @@ class RequestTests(TestCase):
     def test_register_req_invalid_email(self):
         """Register fails with invalid e-mail"""
 
-        response = self.client.post('/register/', {'username': views.USER,
+        response = self.client.post('/register/', {'username': TEST_USER,
                                                     'email': 'invalidemail'})
 
         self.assertTemplateUsed(response, 'register.html')
@@ -121,15 +124,15 @@ class RequestTests(TestCase):
         #       a list for each one, and we want to check the first one
 
         # No users yet
-        self.failUnlessEqual(len(response.context[0]['users']), 0)
+        self.failUnlessEqual(response.context[0]['users'].count(), 0)
         self.assertTemplateUsed(response, 'users.html')
 
         # Add users and verify there is one
-        user = _add_local_user('testuser', email=TEST_EMAIL)
+        _add_local_user('testuser', email=TEST_EMAIL)
 
         response = self.client.get('/users/')
         self.failUnlessEqual(response.status_code, 200)
-        self.failUnlessEqual(len(response.context[0]['users']), 1)
+        self.failUnlessEqual(response.context[0]['users'].count(), 1)
         self.assertTemplateUsed(response, 'users.html')
 
     def test_update_req_not_registered(self):
@@ -157,21 +160,14 @@ class ViewHelperTests(TestCase):
     def test_get_api_success(self):
         """Successfully returns api reference with valid twitter cred."""
 
-        api = views._get_api(views.USER, views.PASS)
+        api = views._get_api()
         self.failIfEqual(api, None)
-
-    def test_get_api_invalid_cred(self):
-        """Unable to get api reference with invalid twitter cred."""
-
-        self.failUnlessRaises(views.InvalidTwitterCred, views._get_api,
-                                'bad123321', 'badpass')
 
     def test_lookup_twitter_user_success(self):
         """Successfully lookup twitter user"""
 
-        user = views._lookup_twitter_user(views.USER)
-        self.failIfEqual(user, None)
-        self.failUnlessEqual(user['screen_name'], views.USER)
+        # Would raise invalidtwittercred exception if doesn't exist
+        views._lookup_twitter_user(TEST_USER)
 
     def test_lookup_twitter_user_invalid_user(self):
         """Unable to find twitter user"""
@@ -183,12 +179,12 @@ class ViewHelperTests(TestCase):
         """Add local user when not found"""
 
         # Check returned object
-        ret_user = views._get_local_user(views.USER, TEST_EMAIL)
-        self.failUnlessEqual(ret_user.username, views.USER)
+        ret_user = views._create_local_user(TEST_USER, TEST_EMAIL)
+        self.failUnlessEqual(ret_user.username, TEST_USER)
         self.failUnlessEqual(ret_user.email, TEST_EMAIL)
 
         # Check DB
-        db_user = TwitterUser.objects.all()[0]
+        db_user = TwitterUser.all()[0]
         self.failUnlessEqual(db_user.username, ret_user.username)
         self.failUnlessEqual(db_user.email, ret_user.email)
 
@@ -197,8 +193,8 @@ class ViewHelperTests(TestCase):
 
         # Check returned object
         self.failUnlessRaises(views.InvalidTwitterCred,
-                                views._get_local_user, 'bad123321',
+                                views._create_local_user, 'bad123321',
                                 TEST_EMAIL)
 
         # Check DB didn't add user
-        self.failUnlessEqual(len(TwitterUser.objects.all()), 0)
+        self.failUnlessEqual(TwitterUser.all().count(), 0)
