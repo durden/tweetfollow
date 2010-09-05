@@ -2,9 +2,9 @@ from appengine_django.models import BaseModel
 from google.appengine.ext import db
 
 class TwitterUser(BaseModel):
-    username = db.StringProperty()
-    email = db.EmailProperty()
+    username = db.StringProperty(required=True)
+    email = db.EmailProperty(required=True)
 
 class Followers(BaseModel):
     user        = db.ReferenceProperty(TwitterUser)
-    follower    = db.StringProperty()
+    follower    = db.StringProperty(required=True)
