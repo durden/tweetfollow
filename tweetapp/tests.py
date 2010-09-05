@@ -30,7 +30,6 @@ def _add_local_user(username, email):
     return user
 
 
->>>>>>> appengineremote/master:tweetapp/tests.py
 class RequestTests(TestCase):
     """Class of tests for tweetapp request handlers"""
 

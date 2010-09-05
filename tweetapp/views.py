@@ -198,7 +198,7 @@ def update_followers(request, username):
                     {'msg': 'Please register user (%s) first' % (username)})
 
     # Send e-mail to local user
-   db_user = TwitterUser.all().filter("username = ", username)[0]
+    db_user = TwitterUser.all().filter("username = ", username)[0]
     _send_email(removed, db_user)
 
     return render_to_response('followers.html', {'user': username,
@@ -208,7 +208,7 @@ def update_followers(request, username):
 def update_all(request):
     """Handle request to update followers for all existing registered users"""
 
-   for user in TwitterUser.all():
+    for user in TwitterUser.all():
         update_followers(request, user.username)
 
     return render_to_response('register.html')
