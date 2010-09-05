@@ -1,10 +1,10 @@
 """Forms for tweetapp """
 
-from django.forms import ModelForm
+from google.appengine.ext.db import djangoforms
 
 from tweetapp.models import TwitterUser
 
-class UserForm(ModelForm):
+class UserForm(djangoforms.ModelForm):
     """User form"""
 
     class Meta:
