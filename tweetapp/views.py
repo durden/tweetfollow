@@ -40,12 +40,11 @@ class Twitter(object):
         # api returns 0 for cursor when no more pages exist
         while ii != 0:
             url = ''.join(['http://api.twitter.com/1/statuses/followers.json',
-                            'screen_name=%s' % (username), 'cursor=%d' % (ii)])
+                            '?screen_name=%s' % (username), '&cursor=%d' % (ii)])
 
-            try:
-                json = simplejson.load(urllib2.urlopen(url).read())
-            except urllib2.HTTPError:
-                return followers
+            # Deliberately DON'T catch http exception b/c caller will
+            # interpret this as the credentials being incorrect if it fails
+            json = simplejson.loads(urllib2.urlopen(url).read())
 
             ii = json['next_cursor']
 
@@ -73,7 +72,7 @@ def _lookup_twitter_user(user):
     # the user doesn't exist b/c we are cheating and not going to
     # bother with users that are set to private, etc.
     try:
-        api.followers(screen_name=user)
+        api.followers(user)
     except:
         raise InvalidTwitterCred()
 
@@ -85,7 +84,7 @@ def _create_local_user(username, email):
         - Raises AlreadyRegistered if user already registered in local DB
     """
 
-    if TwitterUser.all().filter("username = ", username):
+    if TwitterUser.all().filter("username = ", username).count():
         raise AlreadyRegistered()
 
     # Raises exception is user doesn't exist
