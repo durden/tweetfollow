@@ -29,6 +29,7 @@ def _add_local_user(username, email):
     db.put(user)
     return user
 
+
 class RequestTests(TestCase):
     """Class of tests for tweetapp request handlers"""
 
@@ -153,6 +154,7 @@ class RequestTests(TestCase):
         """About request renders about template"""
         response = self.client.get('/about/')
         self.assertTemplateUsed(response, 'about.html')
+
 
 class ViewHelperTests(TestCase):
     """Class of tests for tweetapp views.py helper functions"""
