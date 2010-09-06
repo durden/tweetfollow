@@ -13,3 +13,6 @@ Requirements
 --------
 
 Google app engine account.
+
+Using revision 0e5ee00d1ed777dc141f from app engine twitter oauth
+[library](http://github.com/mikeknapp/AppEngine-OAuth-Library)
