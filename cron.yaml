@@ -1,0 +1,5 @@
+cron:
+- description: daily follower check
+  url: /update_all/
+  schedule: every day 12:00
+  timezone: America/Chicago
