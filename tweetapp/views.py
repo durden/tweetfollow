@@ -1,26 +1,27 @@
 """Views for tweetapp"""
 
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.core.mail import EmailMessage
+from django.shortcuts import render_to_response, redirect
 
 from django.utils import simplejson
 
+from google.appengine.api import urlfetch
 from google.appengine.ext import db
-
-import urllib2
+from google.appengine.api.mail import EmailMessage
 
 from tweetapp.models import TwitterUser, Followers
 from tweetapp.forms import UserForm
 
+import oauth
+
+
+CONSUMER_KEY = "GfR48qbxGItXTE1YrX1NvQ"
+CONSUMER_SECRET = "hp9odY6zCKSMarAWD6t0eXGA10IslEJeti3MVYAjA"
+CALLBACK_URL = "http://lostfollowers.appspot.com/callback/"
+
 
 class AlreadyRegistered(Exception):
     """User already registered with local DB"""
-    pass
-
-
-class InvalidTwitterCred(Exception):
-    """Twitter credentials are incorrect (user/pass)"""
     pass
 
 
@@ -32,93 +33,79 @@ class MissingLocalUser(Exception):
 class Twitter(object):
     """Simple wrapper class for twitter api via json"""
 
-    def followers(self, username):
+    def __init__(self, username):
+        try:
+            self.user = TwitterUser.all().filter("username = ", username)[0]
+        except IndexError:
+            self.user = None
+
+    def followers(self):
         """Get followers from twitter for given username"""
+
         # Use -1 to indicate via twitter api that we're starting pagination
         ii = -1
-        followers = []
+        followers = set()
 
         # api returns 0 for cursor when no more pages exist
         while ii != 0:
             url = ''.join(['http://api.twitter.com/1/statuses/followers.json',
-                            '?screen_name=%s' % (username), '&cursor=%d' % (ii)])
+                            '?screen_name=%s' % (self.user.username),
+                            '&cursor=%d' % (ii)])
 
-            # Deliberately DON'T catch http exception b/c caller will
-            # interpret this as the credentials being incorrect if it fails
-            json = simplejson.loads(urllib2.urlopen(url).read())
+            client = oauth.TwitterClient(CONSUMER_KEY, CONSUMER_SECRET,
+                                         CALLBACK_URL)
+            result = client.make_request(url, token=self.user.oauth_token,
+                                        secret=self.user.oauth_secret,
+                                        additional_params=None,
+                                        method=urlfetch.GET)
 
+            if result.status_code != 200:
+                raise Exception('Status %d returned %s' % \
+                                (result.status_code, result.content))
+
+            json = simplejson.loads(result.content)
             ii = json['next_cursor']
 
             for user in json['users']:
-                followers.append(user['screen_name'])
+                followers.add(user['screen_name'])
+
+        return followers
 
 
-def _get_api():
-    """Create api instance to use
-        - Method only exists to hopefully try to hide what twitter library is
-          being used
-    """
-    return Twitter()
+def callback(request):
+    """Handle oauth callback from twitter"""
 
+    client = oauth.TwitterClient(CONSUMER_KEY, CONSUMER_SECRET, CALLBACK_URL)
+    auth_token = request.GET['oauth_token']
+    auth_verifier = request.GET['oauth_verifier']
+    user_info = client.get_user_info(auth_token, auth_verifier=auth_verifier)
 
-def _lookup_twitter_user(user):
-    """Look up user from twitter
-        - Raises InvalidTwitterCred if user doesn't exist
-        - No return value
-    """
-
-    api = _get_api()
-
-    # Try to see the user's followers, assume any problem means
-    # the user doesn't exist b/c we are cheating and not going to
-    # bother with users that are set to private, etc.
     try:
-        api.followers(user)
-    except:
-        raise InvalidTwitterCred()
+        user = TwitterUser.all().filter("username = ",
+                                        user_info['username'])[0]
+    except IndexError:
+        return render_to_response('register.html',
+                {'msg': 'Please register user (%s) first' % (user.username)})
+
+    user.oauth_secret = user_info['secret']
+    user.oauth_token = user_info['token']
+    db.put(user)
+
+    return HttpResponseRedirect('/success/')
 
 
 def _create_local_user(username, email):
     """Find/create local TwitterUser DB object
-        - Raises InvalidTwitterCred if user doesn't exist on twitter's side
-
         - Raises AlreadyRegistered if user already registered in local DB
     """
 
     if TwitterUser.all().filter("username = ", username).count():
         raise AlreadyRegistered()
 
-    # Raises exception is user doesn't exist
-    _lookup_twitter_user(username)
-
     local_user = TwitterUser(username=username, email=email)
     db.put(local_user)
 
     return local_user
-
-
-def _get_current_followers(username):
-    """Get all the current followers for twitter user from twitter api
-        - Raises InvalidTwitterCred if unable to login to query twitter
-    """
-
-    # Get api object for query (raises exception if validation fails)
-    api = _get_api()
-
-    ii = -1
-    followers = set()
-
-    while True:
-        cur = api.statuses.followers(screen_name=username, cursor=ii)
-        if not len(cur['users']):
-            break
-
-        for follower in cur['users']:
-            followers.add(follower['screen_name'])
-
-        ii = cur['next_cursor']
-
-    return followers
 
 
 def _get_previous_followers(user):
@@ -136,8 +123,6 @@ def _get_previous_followers(user):
 
 def _update_followers(username):
     """Update the followers for twitter user
-        - Raises InvalidTwitterCred if unable to login to query twitter
-
         - Raises MissingLocalUser if user doesn't exist in local DB
     """
 
@@ -147,10 +132,8 @@ def _update_followers(username):
     except IndexError:
         raise MissingLocalUser()
 
-    # Current followers (raises exception if twitter doesn't find user)
-    curr = _get_current_followers(username)
-
-    # Current followers (raises exception if user doesn't exist locally)
+    # Current followers
+    curr = Twitter(username).followers()
     prev = _get_previous_followers(db_user)
 
     added = curr - prev
@@ -178,10 +161,11 @@ def _send_email(lost, user):
 
         body += "</ul>"
 
-        msg = EmailMessage("TweetFollow: Lost %d followers" % (len(lost)),
-                        body, 'follow@tweetfollow.durden.webfactional.com',
-                        [user.email])
-        msg.content_subtype = 'html'
+        msg = EmailMessage(
+                        subject="TweetFollow: Lost %d followers" % (len(lost)),
+                        html=body,
+                        sender="lostfollowers.tweetfollow@gmail.com",
+                        to=[user.email])
         msg.send()
 
 
@@ -190,9 +174,6 @@ def update_followers(request, username):
 
     try:
         added, removed = _update_followers(username)
-    except InvalidTwitterCred:
-        return render_to_response('register.html',
-                    {'msg': 'Unable to find Twitter User (%s)' % (username)})
     except MissingLocalUser:
         return render_to_response('register.html',
                     {'msg': 'Please register user (%s) first' % (username)})
@@ -236,11 +217,10 @@ def register(request):
     except AlreadyRegistered:
         return render_to_response('register.html',
                         {'msg': 'Already registered'})
-    except InvalidTwitterCred:
-        return render_to_response('register.html',
-                        {'msg': 'Unable to find Twitter User (%s)' % (name)})
 
-    return HttpResponseRedirect('/success/')
+    # oauth dance, which ends up at the callback url
+    client = oauth.TwitterClient(CONSUMER_KEY, CONSUMER_SECRET, CALLBACK_URL)
+    return redirect(client.get_authorization_url())
 
 
 def users(request):
