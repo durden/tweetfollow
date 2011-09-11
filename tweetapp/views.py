@@ -1,6 +1,7 @@
 """Views for tweetapp"""
 
 from django.http import HttpResponseRedirect
+
 from django.shortcuts import render_to_response, redirect
 
 from django.utils import simplejson
@@ -18,6 +19,11 @@ import oauth
 CONSUMER_KEY = "GfR48qbxGItXTE1YrX1NvQ"
 CONSUMER_SECRET = "hp9odY6zCKSMarAWD6t0eXGA10IslEJeti3MVYAjA"
 CALLBACK_URL = "http://lostfollowers.appspot.com/callback/"
+
+
+def chunk(l, chunksize):
+    for i in range(0, len(l), chunksize):
+        yield l[i:i+chunksize]
 
 
 class AlreadyRegistered(Exception):
@@ -44,13 +50,13 @@ class Twitter(object):
 
         # Use -1 to indicate via twitter api that we're starting pagination
         ii = -1
-        followers = set()
+        followers = []
 
         # api returns 0 for cursor when no more pages exist
         while ii != 0:
-            url = ''.join(['http://api.twitter.com/1/statuses/followers.json',
+            url = ''.join(['http://api.twitter.com/1/followers/ids.json',
                             '?screen_name=%s' % (self.user.username),
-                            '&cursor=%d' % (ii)])
+                            '&cursor=%d&stringify_ids=true' % (ii)])
 
             client = oauth.TwitterClient(CONSUMER_KEY, CONSUMER_SECRET,
                                          CALLBACK_URL)
@@ -64,12 +70,46 @@ class Twitter(object):
                                 (result.status_code, result.content))
 
             json = simplejson.loads(result.content)
-            ii = json['next_cursor']
 
-            for user in json['users']:
-                followers.add(user['screen_name'])
+            # Twitter API doesn't guarantee how many entires will come back in
+            # the request and depending on how many followers user has it might
+            # bring all them back at once w/o a cursor
+            try:
+                ii = json['next_cursor']
+            except IndexError:
+                ii = 0
 
-        return followers
+            for id in json['ids']:
+                followers.append(str(id))
+
+        return self._names_from_ids(followers)
+
+
+    def _names_from_ids(self, follower_ids):
+        """Return set of follower names given a set of follower ids"""
+
+        names = set()
+
+        for ids in chunk(follower_ids, 100):
+            url = ''.join(['http://api.twitter.com/1/users/lookup.json',
+                            '?user_id=%s' % (','.join(ids))])
+
+            client = oauth.TwitterClient(CONSUMER_KEY, CONSUMER_SECRET,
+                                            CALLBACK_URL)
+            result = client.make_request(url, token=self.user.oauth_token,
+                                        secret=self.user.oauth_secret,
+                                        additional_params=None,
+                                        method=urlfetch.GET)
+
+            if result.status_code != 200:
+                raise Exception('Status %d returned %s' % \
+                                (result.status_code, result.content))
+
+            json = simplejson.loads(result.content)
+            for follower in json:
+                names.add(follower['screen_name'])
+
+        return names
 
 
 def callback(request):
@@ -193,6 +233,25 @@ def update_all(request):
         update_followers(request, user.username)
 
     return render_to_response('register.html')
+
+
+def show_followers(request, username):
+    """
+    Test view just to verify that the main flow of querying Twitter for
+    followers, etc. is working
+    """
+
+    # Verify user exists locally
+    try:
+        db_user = TwitterUser.all().filter("username = ", username)[0]
+    except IndexError:
+        return render_to_response('register.html',
+                    {'msg': 'Please register user (%s) first' % (username)})
+
+    # Current followers
+    added = Twitter(username).followers()
+    return render_to_response('followers.html', {'user': username,
+                                        'added': added, 'removed': None})
 
 
 def register(request):
