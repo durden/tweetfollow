@@ -41,10 +41,20 @@ LOGIN_URL = '/_ah/login'
 # TODO: get an interface for this into the SDK proper
 # ########
 
-def start_server(root_path=ROOT_PATH, port=PORT, app_id=APP_ID):
+def get_appid():
+  fp = open(os.path.join(ROOT_PATH, 'app.yaml'))
+  app = fp.readline()
+  fp.close()
+  try:
+    key, value = app.split(':', 1)
+  except ValueError:
+    return APP_ID
+  return value.strip()
+
+def start_server(root_path=ROOT_PATH, port=PORT):
   dev_appserver.ApplicationLoggingHandler.InitializeTemplates(
       'HEADER', 'SCRIPT', 'MIDDLE', 'FOOTER')
-  dev_appserver.SetupStubs(app_id,
+  dev_appserver.SetupStubs(get_appid(),
                            login_url=LOGIN_URL,
                            datastore_path='/dev/null',
                            history_path='/dev/null',
@@ -173,4 +183,6 @@ class IntegrationTest(test.TestCase):
   def testBasic(self):
     """a request to the default page works in the dev_appserver"""
     rv = self.gae_client.get('/')
-    self.assertEquals(rv.status_code, 200)
+    assert rv.status_code not in (500,404), (
+      "Unexpected status code: %s; body excerpt: %s..." % (rv.status_code, rv.content[0:140] or "<empty>")
+    )

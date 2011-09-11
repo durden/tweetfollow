@@ -1,14 +1,14 @@
 10
 
 dir
-106
+117
 http://google-app-engine-django.googlecode.com/svn/trunk/appengine_django
 http://google-app-engine-django.googlecode.com/svn
 
 
 
-2010-08-23T10:15:56.288019Z
-106
+2011-08-20T17:35:23.525063Z
+117
 mglb@google.com
 has-props
 
@@ -47,10 +47,10 @@ file
 
 
 
-2010-09-01T02:14:01.000000Z
-954f04b1ea401887c92c35d3859c1615
-2010-08-23T10:15:56.288019Z
-106
+2011-09-11T19:26:29.000000Z
+0f12779fca08e18b44021c76696c1a71
+2011-08-20T16:26:56.993994Z
+116
 mglb@google.com
 
 
@@ -73,7 +73,7 @@ mglb@google.com
 
 
 
-22584
+23021
 
 serializer
 dir
@@ -84,7 +84,7 @@ file
 
 
 
-2010-09-01T02:14:01.000000Z
+2011-09-11T19:26:29.000000Z
 bdb56f0b6dc61f5114241391d4ff61bb
 2009-05-15T12:20:30.784185Z
 83
@@ -118,10 +118,10 @@ file
 
 
 
-2010-09-01T02:14:01.000000Z
-c3948d2ee65b57c98e88ba3d860f7e97
-2010-06-14T09:29:18.845321Z
-105
+2011-09-11T19:26:29.000000Z
+19ba6a9cbbc958dc3c5126375b3d6b09
+2010-10-27T09:32:20.817847Z
+108
 mglb@google.com
 has-props
 
@@ -144,7 +144,7 @@ has-props
 
 
 
-6679
+6828
 
 replacement_imp.py
 file
@@ -152,7 +152,7 @@ file
 
 
 
-2010-09-01T02:14:01.000000Z
+2011-09-11T19:26:29.000000Z
 b85ad0410e028e95360d77cff67b5720
 2008-04-10T19:27:52.403124Z
 2

@@ -1,13 +1,13 @@
 K 25
 svn:wc:ra_dav:version-url
 V 46
-/svn/!svn/ver/104/trunk/appengine_django/tests
+/svn/!svn/ver/117/trunk/appengine_django/tests
 END
 serialization_test.py
 K 25
 svn:wc:ra_dav:version-url
-V 67
-/svn/!svn/ver/97/trunk/appengine_django/tests/serialization_test.py
+V 68
+/svn/!svn/ver/110/trunk/appengine_django/tests/serialization_test.py
 END
 model_test.py
 K 25
@@ -37,7 +37,7 @@ integration_test.py
 K 25
 svn:wc:ra_dav:version-url
 V 66
-/svn/!svn/ver/101/trunk/appengine_django/tests/integration_test.py
+/svn/!svn/ver/117/trunk/appengine_django/tests/integration_test.py
 END
 db_test.py
 K 25

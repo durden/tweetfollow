@@ -45,6 +45,7 @@ import unittest
 import zipfile
 
 
+INSTALLED = False
 DIR_PATH = os.path.abspath(os.path.dirname(__file__))
 PARENT_DIR = os.path.dirname(DIR_PATH)
 if PARENT_DIR.endswith(".zip"):
@@ -133,6 +134,10 @@ def LoadSdk():
         os.path.join(SDK_PATH, 'lib', 'webob'),
         os.path.join(SDK_PATH, 'lib', 'yaml', 'lib'),
         os.path.join(SDK_PATH, 'lib', 'fancy_urllib'),
+        os.path.join(SDK_PATH, 'lib', 'simplejson'),
+        os.path.join(SDK_PATH, 'lib', 'whoosh'),
+        os.path.join(SDK_PATH, 'lib', 'protorpc'),
+        os.path.join(SDK_PATH, 'lib', 'graphy'),
     ]
     # Add SDK paths at the start of sys.path, but after the local directory which
     # was added to the start of sys.path on line 50 above. The local directory
@@ -167,7 +172,7 @@ def LoadDjango(version=None):
 
   # If we aren't loading from a zip or local copy then try for whichever
   # supported version is highest and installed
-  for check_version in ('1.1', '1.0'):
+  for check_version in ('1.2', '1.1', '1.0'):
     try:
       use_library('django', check_version)
       return
@@ -329,7 +334,7 @@ def PatchDeserializedObjectClass():
   # This can't be imported until InstallAppengineDatabaseBackend has run.
   from django.core.serializers import base
   class NewDeserializedObject(base.DeserializedObject):
-    def save(self, save_m2m=True):
+    def save(self, save_m2m=True, using=None):
       self.object.save()
       self.object._parent = None
   base.DeserializedObject = NewDeserializedObject
@@ -511,6 +516,11 @@ def InstallAppengineHelperForDjango(version=None):
   If the variable DEBUG_APPENGINE_DJANGO is set in the environment verbose
   logging of the actions taken will be enabled.
   """
+  global INSTALLED
+  if INSTALLED:
+    logging.warning("App Engine Helper has already been installed for this "
+                    "process (not going to reinstall)")
+    return
 
   FixPython26Logging()
   LoadSdk()
@@ -551,6 +561,7 @@ def InstallAppengineHelperForDjango(version=None):
   InstallAuthentication(settings)
 
   logging.debug("Successfully loaded the Google App Engine Helper for Django.")
+  INSTALLED = True
 
 
 def InstallGoogleSMTPConnection():
