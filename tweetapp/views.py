@@ -62,8 +62,7 @@ class Twitter(object):
                                          CALLBACK_URL)
             result = client.make_request(url, token=self.user.oauth_token,
                                         secret=self.user.oauth_secret,
-                                        additional_params=None, protected=True,
-                                        method=urlfetch.GET)
+                                        protected=True)
 
             if result.status_code != 200:
                 raise Exception('Status %d returned %s' % \
@@ -98,8 +97,7 @@ class Twitter(object):
                                             CALLBACK_URL)
             result = client.make_request(url, token=self.user.oauth_token,
                                         secret=self.user.oauth_secret,
-                                        additional_params=None, protected=True,
-                                        method=urlfetch.GET)
+                                        protected=True)
 
             if result.status_code != 200:
                 raise Exception('Status %d returned %s' % \
