@@ -26,4 +26,5 @@ urlpatterns = patterns('',
     (r'^update_all/$', update_all),
     (r'^success/$', direct_to_template, {'template': 'success.html'}),
     (r'^callback/$', callback),
+    (r'^test_followers/(.*)', show_followers),
 )
