@@ -54,7 +54,7 @@ class Twitter(object):
 
         # api returns 0 for cursor when no more pages exist
         while ii != 0:
-            url = ''.join(['http://api.twitter.com/1/followers/ids.json',
+            url = ''.join(['https://api.twitter.com/1/followers/ids.json',
                             '?screen_name=%s' % (self.user.username),
                             '&cursor=%d&stringify_ids=true' % (ii)])
 
